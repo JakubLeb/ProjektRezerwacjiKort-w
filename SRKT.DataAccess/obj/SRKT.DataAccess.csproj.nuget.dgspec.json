@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\nazwi\\source\\repos\\ProjektRezerwacjiKort\\SRKT.DataAccess\\SRKT.DataAccess.csproj": {}
+    "C:\\Users\\nazwi\\source\\repos\\ProjektRezerwacjiKort-w\\SRKT.DataAccess\\SRKT.DataAccess.csproj": {}
   },
   "projects": {
-    "C:\\Users\\nazwi\\source\\repos\\ProjektRezerwacjiKort\\SRKT.Core\\SRKT.Core.csproj": {
+    "C:\\Users\\nazwi\\source\\repos\\ProjektRezerwacjiKort-w\\SRKT.Core\\SRKT.Core.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\nazwi\\source\\repos\\ProjektRezerwacjiKort\\SRKT.Core\\SRKT.Core.csproj",
+        "projectUniqueName": "C:\\Users\\nazwi\\source\\repos\\ProjektRezerwacjiKort-w\\SRKT.Core\\SRKT.Core.csproj",
         "projectName": "SRKT.Core",
-        "projectPath": "C:\\Users\\nazwi\\source\\repos\\ProjektRezerwacjiKort\\SRKT.Core\\SRKT.Core.csproj",
+        "projectPath": "C:\\Users\\nazwi\\source\\repos\\ProjektRezerwacjiKort-w\\SRKT.Core\\SRKT.Core.csproj",
         "packagesPath": "C:\\Users\\nazwi\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\nazwi\\source\\repos\\ProjektRezerwacjiKort\\SRKT.Core\\obj\\",
+        "outputPath": "C:\\Users\\nazwi\\source\\repos\\ProjektRezerwacjiKort-w\\SRKT.Core\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -343,14 +343,14 @@
         }
       }
     },
-    "C:\\Users\\nazwi\\source\\repos\\ProjektRezerwacjiKort\\SRKT.DataAccess\\SRKT.DataAccess.csproj": {
+    "C:\\Users\\nazwi\\source\\repos\\ProjektRezerwacjiKort-w\\SRKT.DataAccess\\SRKT.DataAccess.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\nazwi\\source\\repos\\ProjektRezerwacjiKort\\SRKT.DataAccess\\SRKT.DataAccess.csproj",
+        "projectUniqueName": "C:\\Users\\nazwi\\source\\repos\\ProjektRezerwacjiKort-w\\SRKT.DataAccess\\SRKT.DataAccess.csproj",
         "projectName": "SRKT.DataAccess",
-        "projectPath": "C:\\Users\\nazwi\\source\\repos\\ProjektRezerwacjiKort\\SRKT.DataAccess\\SRKT.DataAccess.csproj",
+        "projectPath": "C:\\Users\\nazwi\\source\\repos\\ProjektRezerwacjiKort-w\\SRKT.DataAccess\\SRKT.DataAccess.csproj",
         "packagesPath": "C:\\Users\\nazwi\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\nazwi\\source\\repos\\ProjektRezerwacjiKort\\SRKT.DataAccess\\obj\\",
+        "outputPath": "C:\\Users\\nazwi\\source\\repos\\ProjektRezerwacjiKort-w\\SRKT.DataAccess\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -371,8 +371,8 @@
           "net10.0": {
             "targetAlias": "net10.0",
             "projectReferences": {
-              "C:\\Users\\nazwi\\source\\repos\\ProjektRezerwacjiKort\\SRKT.Core\\SRKT.Core.csproj": {
-                "projectPath": "C:\\Users\\nazwi\\source\\repos\\ProjektRezerwacjiKort\\SRKT.Core\\SRKT.Core.csproj"
+              "C:\\Users\\nazwi\\source\\repos\\ProjektRezerwacjiKort-w\\SRKT.Core\\SRKT.Core.csproj": {
+                "projectPath": "C:\\Users\\nazwi\\source\\repos\\ProjektRezerwacjiKort-w\\SRKT.Core\\SRKT.Core.csproj"
               }
             }
           }

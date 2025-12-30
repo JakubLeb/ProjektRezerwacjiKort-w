@@ -42,7 +42,14 @@ namespace SRKT.WPF.Views
 
         private void OnNavigateToRegister(object sender, EventArgs e)
         {
-            MessageBox.Show("Funkcja rejestracji zostanie wkrótce dodana.", "Informacja", MessageBoxButton.OK, MessageBoxImage.Information);
+            // 1. Pobierz instancję RegisterWindow z serwisu (dzięki temu wstrzyknie się AuthService)
+            var registerWindow = _serviceProvider.GetRequiredService<RegisterWindow>();
+
+            // 2. Pokaż nowe okno
+            registerWindow.Show();
+
+            // 3. Zamknij obecne okno logowania
+            this.Close();
         }
     }
 }

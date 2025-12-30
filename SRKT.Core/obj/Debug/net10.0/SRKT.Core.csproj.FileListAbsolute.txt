@@ -21,3 +21,15 @@ C:\Users\nazwi\source\repos\ProjektRezerwacjaKortów\SRKT.Core\obj\Debug\net10.0
 C:\Users\nazwi\source\repos\ProjektRezerwacjaKortów\SRKT.Core\obj\Debug\net10.0\refint\SRKT.Core.dll
 C:\Users\nazwi\source\repos\ProjektRezerwacjaKortów\SRKT.Core\obj\Debug\net10.0\SRKT.Core.pdb
 C:\Users\nazwi\source\repos\ProjektRezerwacjaKortów\SRKT.Core\obj\Debug\net10.0\ref\SRKT.Core.dll
+C:\Users\nazwi\source\repos\ProjektRezerwacjiKort-w\SRKT.Core\bin\Debug\net10.0\SRKT.Core.deps.json
+C:\Users\nazwi\source\repos\ProjektRezerwacjiKort-w\SRKT.Core\bin\Debug\net10.0\SRKT.Core.dll
+C:\Users\nazwi\source\repos\ProjektRezerwacjiKort-w\SRKT.Core\bin\Debug\net10.0\SRKT.Core.pdb
+C:\Users\nazwi\source\repos\ProjektRezerwacjiKort-w\SRKT.Core\obj\Debug\net10.0\SRKT.Core.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\nazwi\source\repos\ProjektRezerwacjiKort-w\SRKT.Core\obj\Debug\net10.0\SRKT.Core.AssemblyInfoInputs.cache
+C:\Users\nazwi\source\repos\ProjektRezerwacjiKort-w\SRKT.Core\obj\Debug\net10.0\SRKT.Core.AssemblyInfo.cs
+C:\Users\nazwi\source\repos\ProjektRezerwacjiKort-w\SRKT.Core\obj\Debug\net10.0\SRKT.Core.csproj.CoreCompileInputs.cache
+C:\Users\nazwi\source\repos\ProjektRezerwacjiKort-w\SRKT.Core\obj\Debug\net10.0\SRKT.Core.sourcelink.json
+C:\Users\nazwi\source\repos\ProjektRezerwacjiKort-w\SRKT.Core\obj\Debug\net10.0\SRKT.Core.dll
+C:\Users\nazwi\source\repos\ProjektRezerwacjiKort-w\SRKT.Core\obj\Debug\net10.0\refint\SRKT.Core.dll
+C:\Users\nazwi\source\repos\ProjektRezerwacjiKort-w\SRKT.Core\obj\Debug\net10.0\SRKT.Core.pdb
+C:\Users\nazwi\source\repos\ProjektRezerwacjiKort-w\SRKT.Core\obj\Debug\net10.0\ref\SRKT.Core.dll

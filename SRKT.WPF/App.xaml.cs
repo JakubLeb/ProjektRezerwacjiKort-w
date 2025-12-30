@@ -33,7 +33,7 @@ namespace SRKT.WPF
             services.AddScoped<IKortRepository, KortRepository>();
             services.AddScoped<IRezerwacjaRepository, RezerwacjaRepository>();
 
-            // Services
+            //Service
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IRezerwacjaService, RezerwacjaService>();
             services.AddScoped<IPowiadomienieService, PowiadomienieService>();
@@ -41,6 +41,7 @@ namespace SRKT.WPF
             // Views
             services.AddTransient<LoginWindow>();
             services.AddTransient<MainWindow>();
+            services.AddTransient<RegisterWindow>();
         }
 
         protected override void OnStartup(StartupEventArgs e)

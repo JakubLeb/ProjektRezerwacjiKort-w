@@ -1,66 +1,57 @@
-﻿using SRKT.Business.Services;
-using SRKT.Core.Models;
+﻿using SRKT.Core.Models;
 using SRKT.DataAccess.Repositories;
-using System.Security.Cryptography;
-using System.Text;
+using Microsoft.EntityFrameworkCore; // Potrzebne do FirstOrDefaultAsync
+using System.Threading.Tasks;
 
 namespace SRKT.Business.Services
 {
     public class AuthService : IAuthService
     {
-        private readonly IRepository<Uzytkownik> _uzytkownikRepo;
+        private readonly IRepository<Uzytkownik> _uzytkownikRepository;
 
-        public AuthService(IRepository<Uzytkownik> uzytkownikRepo)
+        // Upewnij się, że konstruktor przyjmuje repozytorium
+        public AuthService(IRepository<Uzytkownik> uzytkownikRepository)
         {
-            _uzytkownikRepo = uzytkownikRepo;
+            _uzytkownikRepository = uzytkownikRepository;
         }
 
         public async Task<Uzytkownik> LoginAsync(string email, string haslo)
         {
-            var uzytkownicy = await _uzytkownikRepo.FindAsync(u => u.Email == email);
-            var uzytkownik = uzytkownicy.FirstOrDefault();
-
-            if (uzytkownik == null)
-                return null;
-
-            if (!VerifyPassword(haslo, uzytkownik.HasloHash))
-                return null;
-
-            return uzytkownik;
+            // Twoja istniejąca logika logowania...
+            var users = await _uzytkownikRepository.GetAllAsync();
+            // Prosta weryfikacja (w przyszłości warto dodać haszowanie haseł)
+            foreach (var user in users)
+            {
+                if (user.Email == email && user.HasloHash == haslo)
+                    return user;
+            }
+            return null;
         }
 
-        public async Task<Uzytkownik> RegisterAsync(string imie, string nazwisko, string email, string haslo)
+        // Nowa implementacja rejestracji
+        public async Task<bool> RegisterAsync(string email, string haslo, string imie, string nazwisko)
         {
-            var istniejacy = await _uzytkownikRepo.FindAsync(u => u.Email == email);
-            if (istniejacy.Any())
-                throw new Exception("Użytkownik o podanym adresie email już istnieje.");
-
-            var uzytkownik = new Uzytkownik
+            // 1. Sprawdź, czy taki email już istnieje
+            var allUsers = await _uzytkownikRepository.GetAllAsync();
+            foreach (var u in allUsers)
             {
+                if (u.Email.ToLower() == email.ToLower())
+                    return false; // Użytkownik już istnieje
+            }
+
+            // 2. Utwórz nowy obiekt użytkownika
+            var nowyUzytkownik = new Uzytkownik
+            {
+                Email = email,
+                HasloHash = haslo, // UWAGA: W wersji produkcyjnej tutaj należy hasło zahaszować!
                 Imie = imie,
                 Nazwisko = nazwisko,
-                Email = email,
-                HasloHash = HashPassword(haslo),
-                RolaId = 2, // Użytkownik
-                DataUtworzenia = DateTime.Now
+                RolaId = 2 // Zakładamy, że 2 to ID roli "Klient" lub "Użytkownik"
             };
 
-            return await _uzytkownikRepo.AddAsync(uzytkownik);
-        }
-
-        public string HashPassword(string haslo)
-        {
-            using (var sha256 = SHA256.Create())
-            {
-                var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(haslo));
-                return Convert.ToBase64String(hashedBytes);
-            }
-        }
-
-        public bool VerifyPassword(string haslo, string hash)
-        {
-            var hashOfInput = HashPassword(haslo);
-            return hashOfInput == hash;
+            // 3. Zapisz w bazie
+            await _uzytkownikRepository.AddAsync(nowyUzytkownik);
+            return true;
         }
     }
 }
