@@ -52,7 +52,7 @@ namespace SRKT.WPF.Views {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/SRKT.WPF;component/views/dostepnekortyview.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/SRKT.WPF;V1.0.0.0;component/views/dostepnekortyview.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\Views\DostepneKortyView.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

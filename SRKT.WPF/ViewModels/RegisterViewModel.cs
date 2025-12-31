@@ -1,5 +1,6 @@
 ﻿using SRKT.Business.Services;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Input;
 
@@ -38,9 +39,20 @@ namespace SRKT.WPF.ViewModels
         public event EventHandler RegistrationSuccessful;
         public event EventHandler NavigateBack;
 
+        private bool CzyEmailJestPoprawny(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return false;
+
+            // Wzorzec wymagający znaków przed @, znaku @, znaków po @, kropki i znaków po kropce
+            string wzorzec = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+
+            return Regex.IsMatch(email, wzorzec);
+        }
         private bool MozeZarejestrowac()
         {
             return !string.IsNullOrWhiteSpace(Email) &&
+                    CzyEmailJestPoprawny(Email) &&
                    !string.IsNullOrWhiteSpace(Haslo) &&
                    !string.IsNullOrWhiteSpace(Imie) &&
                    !string.IsNullOrWhiteSpace(Nazwisko) &&
@@ -51,6 +63,12 @@ namespace SRKT.WPF.ViewModels
         {
             try
             {
+                if (!CzyEmailJestPoprawny(Email))
+                {
+                    Komunikat = "Podany adres email ma nieprawidłowy format.";
+                    return;
+                }
+
                 bool sukces = await _authService.RegisterAsync(Email, Haslo, Imie, Nazwisko);
                 if (sukces)
                 {

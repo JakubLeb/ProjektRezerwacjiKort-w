@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using SRKT.Business.Services;
 using SRKT.DataAccess;
 using SRKT.DataAccess.Repositories;
+using SRKT.WPF.ViewModels;
 using SRKT.WPF.Views;
 using System;
 using System.Windows;

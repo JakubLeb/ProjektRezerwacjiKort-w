@@ -18,46 +18,40 @@
                       FontWeight="Bold" 
                       Foreground="White"/>
         </Border>
-
-        <!-- Zawartość -->
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="300"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-
+        <StackPanel Grid.Row="1">
             <!-- Lista kortów -->
-            <Border Grid.Column="0" 
-                   Background="White" 
-                   CornerRadius="5" 
-                   Padding="15" 
-                   Margin="0,0,10,0">
+
+            <!-- Wyniki wyszukiwania -->
+            <Border 
+                Background="White" 
+                CornerRadius="5" 
+                Padding="15">
                 <Border.Effect>
                     <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.2"/>
                 </Border.Effect>
 
                 <StackPanel>
                     <TextBlock Text="Lista kortów" 
-                              FontSize="16" 
-                              FontWeight="Bold" 
-                              Margin="0,0,0,15"/>
+                        FontSize="16" 
+                        FontWeight="Bold" 
+                        Margin="0,0,0,15"/>
 
                     <TextBlock Text="Filtruj:" 
-                              FontSize="12" 
-                              Margin="0,0,0,5"/>
+                        FontSize="12" 
+                        Margin="0,0,0,5"/>
                     <TextBlock Text="Data:" 
-                              Margin="0,10,0,5"/>
+                        Margin="0,10,0,5"/>
                     <DatePicker SelectedDate="{Binding WybranaData, Mode=TwoWay}" 
-                               Margin="0,0,0,10"/>
+                        Margin="0,0,0,10"/>
 
                     <TextBlock Text="Typ:" 
-                              Margin="0,0,0,5"/>
+                        Margin="0,0,0,5"/>
                     <ComboBox Margin="0,0,0,15">
                         <ComboBoxItem Content="Wszystkie" IsSelected="True"/>
                     </ComboBox>
 
                     <TextBlock Text="Godziny:" 
-                              Margin="0,0,0,5"/>
+                        Margin="0,0,0,5"/>
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
                         <ComboBox Width="70" Margin="0,0,5,0">
                             <ComboBoxItem Content="09:00" IsSelected="True"/>
@@ -69,58 +63,37 @@
                     </StackPanel>
 
                     <Button Content="[Szukaj]" 
-                           Command="{Binding SzukajTerminowCommand}" 
-                           Background="#3498DB" 
-                           Foreground="White" 
-                           Height="35" 
-                           Margin="0,10,0,20"/>
-
-                    <ListBox ItemsSource="{Binding Korty}" 
-                            SelectedItem="{Binding WybranyKort}"
-                            Height="250">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel Margin="5">
-                                    <TextBlock Text="{Binding Nazwa}" 
-                                              FontWeight="Bold" 
-                                              FontSize="14"/>
-                                    <TextBlock Text="{Binding TypKortu.Nazwa}" 
-                                              Foreground="#7F8C8D" 
-                                              FontSize="12"/>
-                                    <TextBlock Text="{Binding CenaZaGodzine, StringFormat='Cena: {0} PLN/godz'}" 
-                                              Foreground="#27AE60" 
-                                              FontSize="12"/>
-                                </StackPanel>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
+                        Command="{Binding SzukajTerminowCommand}" 
+                        Background="#3498DB" 
+                        Foreground="White" 
+                        Height="35" 
+                        Margin="0,10,0,20"/>
                 </StackPanel>
             </Border>
 
             <!-- Wyniki wyszukiwania -->
-            <Border Grid.Column="1" 
-                   Background="White" 
-                   CornerRadius="5" 
-                   Padding="20" 
-                   Margin="10,0,0,0">
+            <Border 
+                Background="White" 
+                CornerRadius="5" 
+                Padding="20" Height="77">
                 <Border.Effect>
                     <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.2"/>
                 </Border.Effect>
 
                 <StackPanel>
                     <TextBlock Text="Wyniki wyszukiwania:" 
-                              FontSize="16" 
-                              FontWeight="Bold" 
-                              Margin="0,0,0,15"/>
+                        FontSize="16" 
+                        FontWeight="Bold" 
+                        Margin="0,0,0,15"/>
 
                     <ItemsControl ItemsSource="{Binding DostepneTerminy}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Border BorderBrush="#BDC3C7" 
-                                       BorderThickness="1" 
-                                       CornerRadius="5" 
-                                       Padding="15" 
-                                       Margin="0,5">
+                                    BorderThickness="1" 
+                                    CornerRadius="5" 
+                                    Padding="15" 
+                                    Margin="0,5">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
@@ -128,25 +101,21 @@
                                         </Grid.ColumnDefinitions>
 
                                         <StackPanel Grid.Column="0">
-                                            <TextBlock FontSize="14" FontWeight="Bold">
-                                                <Run Text="{Binding Start, StringFormat='HH:mm'}"/>
-                                                <Run Text="-"/>
-                                                <Run Text="{Binding End, StringFormat='HH:mm'}"/>
-                                            </TextBlock>
+                                            <TextBlock FontSize="14" FontWeight="Bold"><Run Text="{Binding Start, StringFormat=HH:mm}"/><Run Text=" "/><Run Text="-"/><Run Text=" "/><Run Text="{Binding End, StringFormat=HH:mm}"/></TextBlock>
                                             <TextBlock Text="{Binding Dostepny, Converter={StaticResource BoolToStatusConverter}}" 
-                                                      FontSize="12" 
-                                                      Margin="0,5,0,0"/>
+                                                FontSize="12" 
+                                                Margin="0,5,0,0"/>
                                         </StackPanel>
 
                                         <Button Grid.Column="1" 
-                                               Content="[Rezerwuj]" 
-                                               Command="{Binding DataContext.RezerwujCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                               CommandParameter="{Binding}"
-                                               Background="#27AE60" 
-                                               Foreground="White" 
-                                               Width="100" 
-                                               Height="30"
-                                               IsEnabled="{Binding Dostepny}"/>
+                                            Content="[Rezerwuj]" 
+                                            Command="{Binding DataContext.RezerwujCommand, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}"
+                                            CommandParameter="{Binding}"
+                                            Background="#27AE60" 
+                                            Foreground="White" 
+                                            Width="100" 
+                                            Height="30"
+                                            IsEnabled="{Binding Dostepny}"/>
                                     </Grid>
                                 </Border>
                             </DataTemplate>
@@ -154,6 +123,8 @@
                     </ItemsControl>
                 </StackPanel>
             </Border>
-        </Grid>
+        </StackPanel>
+
+        <!-- Zawartość -->
     </Grid>
 </UserControl>

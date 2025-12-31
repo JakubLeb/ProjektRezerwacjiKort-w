@@ -2,6 +2,8 @@
 using SRKT.DataAccess.Repositories;
 using Microsoft.EntityFrameworkCore; // Potrzebne do FirstOrDefaultAsync
 using System.Threading.Tasks;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace SRKT.Business.Services
 {
@@ -17,17 +19,33 @@ namespace SRKT.Business.Services
 
         public async Task<Uzytkownik> LoginAsync(string email, string haslo)
         {
-            // Twoja istniejąca logika logowania...
             var users = await _uzytkownikRepository.GetAllAsync();
-            // Prosta weryfikacja (w przyszłości warto dodać haszowanie haseł)
+
+            // Oblicz hash wpisanego hasła, aby porównać go z tym w bazie
+            string hashWpisanegoHasla = ObliczHash(haslo);
+
             foreach (var user in users)
             {
-                if (user.Email == email && user.HasloHash == haslo)
+                // Porównujemy Email oraz Hashe haseł
+                if (user.Email.ToLower() == email.ToLower() && user.HasloHash == hashWpisanegoHasla)
+                {
                     return user;
+                }
             }
             return null;
         }
-
+        private string ObliczHash(string haslo)
+        {
+            using (var sha256 = SHA256.Create())
+            {
+                // Zamień string na tablicę bajtów
+                var bytes = Encoding.UTF8.GetBytes(haslo);
+                // Oblicz hash
+                var hash = sha256.ComputeHash(bytes);
+                // Zamień tablicę bajtów z powrotem na string (Base64)
+                return Convert.ToBase64String(hash);
+            }
+        }
         // Nowa implementacja rejestracji
         public async Task<bool> RegisterAsync(string email, string haslo, string imie, string nazwisko)
         {
@@ -43,15 +61,17 @@ namespace SRKT.Business.Services
             var nowyUzytkownik = new Uzytkownik
             {
                 Email = email,
-                HasloHash = haslo, // UWAGA: W wersji produkcyjnej tutaj należy hasło zahaszować!
+                HasloHash = ObliczHash(haslo), // UWAGA: W wersji produkcyjnej tutaj należy hasło zahaszować!
                 Imie = imie,
                 Nazwisko = nazwisko,
-                RolaId = 2 // Zakładamy, że 2 to ID roli "Klient" lub "Użytkownik"
+                RolaId = 2, // Zakładamy, że 2 to ID roli "Klient" lub "Użytkownik"
+                DataUtworzenia = DateTime.Now
             };
 
             // 3. Zapisz w bazie
             await _uzytkownikRepository.AddAsync(nowyUzytkownik);
             return true;
         }
+
     }
 }
