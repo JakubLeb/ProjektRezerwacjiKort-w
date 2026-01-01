@@ -3,10 +3,24 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewModels="clr-namespace:SRKT.WPF.ViewModels"
+        xmlns:views="clr-namespace:SRKT.WPF.Views"
         mc:Ignorable="d"
         Title="System Rezerwacji Kortów Tenisowych" 
         Height="700" Width="1200"
         WindowStartupLocation="CenterScreen">
+
+    <Window.Resources>
+        <!-- Automatyczne mapowanie ViewModeli na widoki -->
+        <DataTemplate DataType="{x:Type viewModels:DostepneKortyViewModel}">
+            <views:DostepneKortyView/>
+        </DataTemplate>
+
+        <DataTemplate DataType="{x:Type viewModels:MojeRezerwacjeViewModel}">
+            <views:MojeRezerwacjeView/>
+        </DataTemplate>
+    </Window.Resources>
+
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="200"/>
@@ -20,18 +34,12 @@
                           Foreground="White" 
                           FontSize="20" 
                           FontWeight="Bold" 
-                          Margin="0,10,0,10" HorizontalAlignment="Center"/>
-                <Rectangle Height="1" Stroke="White" RenderTransformOrigin="0.5,0.5" Margin="0,0,0,10">
-                    <Rectangle.RenderTransform>
-                        <TransformGroup>
-                            <ScaleTransform ScaleY="-1"/>
-                            <SkewTransform/>
-                            <RotateTransform/>
-                            <TranslateTransform/>
-                        </TransformGroup>
-                    </Rectangle.RenderTransform>
-                </Rectangle>
-               
+                          Margin="0,10,0,10" 
+                          HorizontalAlignment="Center"/>
+
+                <Rectangle Height="1" 
+                          Stroke="White" 
+                          Margin="0,0,0,10"/>
 
                 <Button Content="Dostępne Korty" 
                        Command="{Binding PokazDostepneKortyCommand}"
@@ -48,6 +56,8 @@
                        Style="{StaticResource MenuButtonStyle}"
                        Margin="0,50,0,5"
                        Background="#E74C3C"/>
+
+                <!-- Info użytkownika -->
                 <Border Background="#34495E" 
                        CornerRadius="5" 
                        Padding="10" 
@@ -67,8 +77,6 @@
                                   Margin="0,5,0,0"/>
                     </StackPanel>
                 </Border>
-
-                <!-- Info użytkownika -->
             </StackPanel>
         </Border>
 
@@ -77,4 +85,4 @@
                        Content="{Binding AktualnyWidok}"
                        Margin="10"/>
     </Grid>
-</Window>                                   
+</Window>
