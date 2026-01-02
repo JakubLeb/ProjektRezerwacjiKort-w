@@ -21,7 +21,7 @@
 
         <!-- Lista rezerwacji -->
         <DataGrid Grid.Row="1" 
-                 ItemsSource="{Binding Rezerwacje}"
+                 ItemsSource="{Binding Rezerwacja}"
                  SelectedItem="{Binding WybranaRezerwacja}"
                  AutoGenerateColumns="False"
                  IsReadOnly="True"
@@ -30,28 +30,29 @@
                  RowHeight="50">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Data" 
-                                   Binding="{Binding DataRezerwacji, StringFormat='dd.MM.yyyy HH:mm'}"
-                                   Width="150"/>
+                       Binding="{Binding DataRezerwacji, StringFormat='dd.MM.yyyy HH:mm', TargetNullValue='-'}"
+                       Width="150"/>
                 <DataGridTextColumn Header="Kort" 
-                                   Binding="{Binding Kort.PelnaNazwa}"
-                                   Width="*"/>
+                       Binding="{Binding Kort.PelnaNazwa, TargetNullValue='Brak danych'}"
+                       Width="*"/>
                 <DataGridTextColumn Header="Czas trwania" 
-                                   Binding="{Binding IloscGodzin, StringFormat='{}{0} godzina'}"
-                                   Width="120"/>
+                       Binding="{Binding IloscGodzin, StringFormat='{}{0} godzin', TargetNullValue='-'}"
+                       Width="120"/>
                 <DataGridTextColumn Header="Koszt" 
-                                   Binding="{Binding KosztCalkowity, StringFormat='{}{0} PLN'}"
-                                   Width="100"/>
+                       Binding="{Binding KosztCalkowity, StringFormat='{}{0:F2} PLN', TargetNullValue='-'}"
+                       Width="100"/>
                 <DataGridTextColumn Header="Status" 
-                                   Binding="{Binding StatusRezerwacji.Nazwa}"
-                                   Width="120"/>
+                       Binding="{Binding StatusRezerwacji.Nazwa, TargetNullValue='Nieznany'}"
+                       Width="120"/>
                 <DataGridTemplateColumn Header="Akcje" Width="150">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <Button Content="[Anuluj]" 
-                                   Command="{Binding DataContext.AnulujRezerwacjeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                   Background="#E74C3C" 
-                                   Foreground="White" 
-                                   Margin="5"/>
+                            <Button Content="Anuluj" 
+                       Command="{Binding DataContext.AnulujRezerwacjeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                       CommandParameter="{Binding}"
+                       Background="#E74C3C" 
+                       Foreground="White" 
+                       Margin="5"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>

@@ -47,9 +47,16 @@ namespace SRKT.WPF.ViewModels
             {
                 var rezerwacje = await _rezerwacjaService.GetRezerwacjeUzytkownikaAsync(_uzytkownik.Id);
                 Rezerwacje.Clear();
-                foreach (var rezerwacja in rezerwacje)
+
+                if (rezerwacje != null)
                 {
-                    Rezerwacje.Add(rezerwacja);
+                    foreach (var rezerwacja in rezerwacje)
+                    {
+                        if (rezerwacja != null)
+                        {
+                            Rezerwacje.Add(rezerwacja);
+                        }
+                    }
                 }
             }
             catch (Exception ex)

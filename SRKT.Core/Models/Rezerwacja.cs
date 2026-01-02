@@ -12,8 +12,8 @@
         public int StatusRezerwacjiId { get; set; }
         public DateTime DataUtworzenia { get; set; }
         public DateTime? DataModyfikacji { get; set; }
-        public string Uwagi { get; set; }
-        public string SciezkaZdjecia { get; set; }
+        public string? Uwagi { get; set; }
+        public string? SciezkaZdjecia { get; set; }
 
         public virtual Kort Kort { get; set; }
         public virtual Uzytkownik Uzytkownik { get; set; }
