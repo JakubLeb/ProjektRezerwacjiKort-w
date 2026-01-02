@@ -8,5 +8,6 @@ namespace SRKT.WPF.Views
         {
             InitializeComponent();
         }
+
     }
 }

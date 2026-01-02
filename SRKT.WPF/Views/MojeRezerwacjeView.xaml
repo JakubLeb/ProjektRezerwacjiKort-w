@@ -21,38 +21,59 @@
 
         <!-- Lista rezerwacji -->
         <DataGrid Grid.Row="1" 
-                 ItemsSource="{Binding Rezerwacja}"
+                 ItemsSource="{Binding Rezerwacje}" 
                  SelectedItem="{Binding WybranaRezerwacja}"
                  AutoGenerateColumns="False"
                  IsReadOnly="True"
                  GridLinesVisibility="Horizontal"
                  HeadersVisibility="Column"
                  RowHeight="50">
+
+            <DataGrid.Resources>
+                <Style x:Key="CenterCellStyle" TargetType="TextBlock">
+                    <Setter Property="VerticalAlignment" Value="Center"/>
+                    <Setter Property="Padding" Value="10,0,0,0"/>
+                </Style>
+            </DataGrid.Resources>
+
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Data" 
                        Binding="{Binding DataRezerwacji, StringFormat='dd.MM.yyyy HH:mm', TargetNullValue='-'}"
-                       Width="150"/>
+                       Width="150"
+                       ElementStyle="{StaticResource CenterCellStyle}"/>
+
                 <DataGridTextColumn Header="Kort" 
                        Binding="{Binding Kort.PelnaNazwa, TargetNullValue='Brak danych'}"
-                       Width="*"/>
+                       Width="*"
+                       ElementStyle="{StaticResource CenterCellStyle}"/>
+
                 <DataGridTextColumn Header="Czas trwania" 
                        Binding="{Binding IloscGodzin, StringFormat='{}{0} godzin', TargetNullValue='-'}"
-                       Width="120"/>
+                       Width="120"
+                       ElementStyle="{StaticResource CenterCellStyle}"/>
+
                 <DataGridTextColumn Header="Koszt" 
                        Binding="{Binding KosztCalkowity, StringFormat='{}{0:F2} PLN', TargetNullValue='-'}"
-                       Width="100"/>
+                       Width="100"
+                       ElementStyle="{StaticResource CenterCellStyle}"/>
+
                 <DataGridTextColumn Header="Status" 
                        Binding="{Binding StatusRezerwacji.Nazwa, TargetNullValue='Nieznany'}"
-                       Width="120"/>
+                       Width="120"
+                       ElementStyle="{StaticResource CenterCellStyle}"/>
+
                 <DataGridTemplateColumn Header="Akcje" Width="150">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <Button Content="Anuluj" 
-                       Command="{Binding DataContext.AnulujRezerwacjeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                       CommandParameter="{Binding}"
-                       Background="#E74C3C" 
-                       Foreground="White" 
-                       Margin="5"/>
+                                    Command="{Binding DataContext.AnulujRezerwacjeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}"
+                                    Background="#E74C3C" 
+                                    Foreground="White" 
+                                    Margin="5"
+                                    HorizontalAlignment="Center" 
+                                    VerticalAlignment="Center"
+                                    Width="100"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
