@@ -1,7 +1,7 @@
 ﻿using SRKT.Business.Services;
 using SRKT.Core.Models;
 using SRKT.DataAccess.Repositories;
-using SRKT.WPF.Views; // ⭐ DODAJ
+using SRKT.WPF.Views; 
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 
@@ -48,14 +48,14 @@ namespace SRKT.WPF.ViewModels
         {
             var viewModel = new DostepneKortyViewModel(_kortRepo, _rezerwacjaService, AktualnyUzytkownik);
             var view = new DostepneKortyView { DataContext = viewModel }; // ⭐ Utwórz widok
-            AktualnyWidok = view; // ⭐ Przypisz widok, nie ViewModel
+            AktualnyWidok = view; 
         }
 
         private void PokazMojeRezerwacje()
         {
             var viewModel = new MojeRezerwacjeViewModel(_rezerwacjaService, AktualnyUzytkownik);
             var view = new MojeRezerwacjeView { DataContext = viewModel }; // ⭐ Utwórz widok
-            AktualnyWidok = view; // ⭐ Przypisz widok, nie ViewModel
+            AktualnyWidok = view; 
         }
 
         private void Wyloguj()

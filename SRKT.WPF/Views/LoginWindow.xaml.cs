@@ -42,13 +42,10 @@ namespace SRKT.WPF.Views
 
         private void OnNavigateToRegister(object sender, EventArgs e)
         {
-            // 1. Pobierz instancję RegisterWindow z serwisu (dzięki temu wstrzyknie się AuthService)
             var registerWindow = _serviceProvider.GetRequiredService<RegisterWindow>();
 
-            // 2. Pokaż nowe okno
             registerWindow.Show();
 
-            // 3. Zamknij obecne okno logowania
             this.Close();
         }
     }

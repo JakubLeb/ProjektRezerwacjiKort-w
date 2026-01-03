@@ -35,7 +35,6 @@ namespace SRKT.WPF.ViewModels
         public ICommand ZarejestrujCommand { get; }
         public ICommand PowrotCommand { get; }
 
-        // Zdarzenia do sterowania oknami
         public event EventHandler RegistrationSuccessful;
         public event EventHandler NavigateBack;
 

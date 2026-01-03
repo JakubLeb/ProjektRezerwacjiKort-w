@@ -105,36 +105,49 @@ namespace SRKT.Business.Services
             return true;
         }
 
-        public async Task<IEnumerable<TimeSlot>> GetWolneTerminyAsync(int kortId, DateTime data)
+        public async Task<IEnumerable<TimeSlot>> GetWolneTerminyAsync(int kortId, DateTime data, decimal dlugoscSesji)
         {
+            var kort = await _kortRepo.GetByIdAsync(kortId);
+            string nazwaKortu = kort?.Nazwa ?? "Nieznany";
+            string opisKortu = kort != null ? $"{kort.Nazwa} - {kort.TypKortu?.Nazwa ?? ""}" : "Nieznany";
+
             var rezerwacje = await _rezerwacjaRepo.GetRezerwacjeByKortAsync(kortId, data);
             var slots = new List<TimeSlot>();
 
-            var godzinyPracy = new TimeSpan(9, 0, 0); // 9:00
-            var godzinaKonca = new TimeSpan(21, 0, 0); // 21:00
+            var godzinyPracy = new TimeSpan(8, 0, 0);
+            var godzinaKonca = new TimeSpan(22, 0, 0);
 
             var currentTime = data.Date.Add(godzinyPracy);
             var endTime = data.Date.Add(godzinaKonca);
 
-            while (currentTime < endTime)
+            while (currentTime.AddHours((double)dlugoscSesji) <= endTime)
             {
-                var slotEnd = currentTime.AddHours(1);
+                var slotEnd = currentTime.AddHours((double)dlugoscSesji);
+
+                // Sprawdzenie kolizji dla całego zakresu (Start -> Start + Dlugosc)
                 var rezerwacjaWSlot = rezerwacje.Any(r =>
-                    (r.DataRezerwacji <= currentTime && r.DataRezerwacji.AddHours((double)r.IloscGodzin) > currentTime) ||
-                    (r.DataRezerwacji < slotEnd && r.DataRezerwacji >= currentTime)
+                    r.StatusRezerwacjiId != 3 &&
+                    (
+                        (r.DataRezerwacji < slotEnd && r.DataRezerwacji.AddHours((double)r.IloscGodzin) > currentTime)
+                    )
                 );
 
                 slots.Add(new TimeSlot
                 {
                     Start = currentTime,
                     End = slotEnd,
-                    Dostepny = !rezerwacjaWSlot
+                    Dostepny = !rezerwacjaWSlot,
+                    KortId = kortId,
+                    NazwaKortu = nazwaKortu,
+                    OpisKortu = opisKortu,
+                    Dlugosc = dlugoscSesji
                 });
 
-                currentTime = slotEnd;
+                // Przesuwamy się o 1h 
+                currentTime = currentTime.AddHours(1);
             }
 
             return slots;
         }
     }
-}
+    }

@@ -9,13 +9,10 @@ namespace SRKT.WPF.Views
     {
         private readonly RegisterViewModel _viewModel;
 
-        // Konstruktor używany przez DI
         public RegisterWindow(IAuthService authService)
         {
             InitializeComponent();
             _viewModel = new RegisterViewModel(authService);
-
-            // Obsługa zdarzeń z ViewModelu
             _viewModel.RegistrationSuccessful += (s, e) => { CloseAndShowLogin(); };
             _viewModel.NavigateBack += (s, e) => { CloseAndShowLogin(); };
 
@@ -24,7 +21,6 @@ namespace SRKT.WPF.Views
 
         private void CloseAndShowLogin()
         {
-            // Otwieramy z powrotem LoginWindow
             var app = (App)Application.Current;
             var loginWindow = app.ServiceProvider.GetService(typeof(LoginWindow)) as Window;
             loginWindow.Show();

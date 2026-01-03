@@ -28,8 +28,8 @@ namespace SRKT.Business.Services
                 RezerwacjaId = rezerwacjaId,
                 Tytul = tytul,
                 Tresc = tresc,
-                TypPowiadomieniaId = 2, // Systemowe
-                StatusPowiadomieniaId = 1, // Wysłane
+                TypPowiadomieniaId = 2,
+                StatusPowiadomieniaId = 1,
                 DataWyslania = DateTime.Now,
                 DataUtworzenia = DateTime.Now
             };
@@ -44,8 +44,8 @@ namespace SRKT.Business.Services
                 UzytkownikId = uzytkownikId,
                 Tytul = tytul,
                 Tresc = tresc,
-                TypPowiadomieniaId = 1, // Email
-                StatusPowiadomieniaId = 2, // Oczekujące
+                TypPowiadomieniaId = 1,
+                StatusPowiadomieniaId = 2,
                 DataUtworzenia = DateTime.Now
             };
 
