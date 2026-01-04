@@ -5,12 +5,11 @@
         public int Id { get; set; }
         public string Nazwa { get; set; }
         public string Adres { get; set; }
-        public decimal? SzerokoscGeo { get; set; }
-        public decimal? DlugoscGeo { get; set; }
         public bool CzyAktywny { get; set; }
         public int TypObiektuId { get; set; }
         public DateTime DataUtworzenia { get; set; }
         public DateTime? DataModyfikacji { get; set; }
+        public string? LinkLokalizacji { get; set; }
 
         public virtual TypObiektu TypObiektu { get; set; }
         public virtual ICollection<Kort> Korty { get; set; }
