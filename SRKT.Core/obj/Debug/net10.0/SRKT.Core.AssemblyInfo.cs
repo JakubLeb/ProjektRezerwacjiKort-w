@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SRKT.Core")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cc70fd8c5c581d9d80200b330725b862b5711da8")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a3c4d5b65ff6403b8af4e5c09f63831a684dd2af")]
 [assembly: System.Reflection.AssemblyProductAttribute("SRKT.Core")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SRKT.Core")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
