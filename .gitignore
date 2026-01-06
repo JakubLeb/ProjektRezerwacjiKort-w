@@ -11,3 +11,11 @@
 .vs/VSWorkspaceState.json
 /.vs
 .SRKT.WPF/bin
+.SRKT.Database
+.SRKT.WPF/obj
+.SRKT.DataAccess/obj
+.SRKT.DataAccess/bin
+.SRKT.Core/obj
+.SRKT.Core/bin
+.SRKT.Business/obj
+.SRKT.Business/bin
