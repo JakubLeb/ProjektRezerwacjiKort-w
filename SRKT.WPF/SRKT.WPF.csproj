@@ -1,6 +1,22 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <None Remove="images\korty\default_court.png" />
+    <None Remove="images\korty\malta_a.jpg" />
+    <None Remove="images\korty\malta_b.jpg" />
+    <None Remove="images\korty\malta_halowy.jpg" />
+    <None Remove="images\korty\olimpia_premium.jpg" />
+    <None Remove="images\korty\olimpia_standard.jpg" />
+    <None Remove="images\korty\pkt_centralny.jpg" />
+    <None Remove="images\korty\pkt_kort2.jpg" />
+    <None Remove="images\korty\pkt_kort3.jpg" />
+    <None Remove="images\korty\pkt_treningowy.jpg" />
+    <None Remove="images\korty\warta_kort1.jpg" />
+    <None Remove="images\korty\warta_kort2.jpg" />
+    <None Remove="images\korty\warta_szybki.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\SRKT.Business\SRKT.Business.csproj" />
     <ProjectReference Include="..\SRKT.Core\SRKT.Core.csproj" />
     <ProjectReference Include="..\SRKT.DataAccess\SRKT.DataAccess.csproj" />
@@ -12,6 +28,48 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="images\korty\default_court.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="images\korty\malta_a.jpg">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="images\korty\malta_b.jpg">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="images\korty\malta_halowy.jpg">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="images\korty\olimpia_premium.jpg">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="images\korty\olimpia_standard.jpg">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="images\korty\pkt_centralny.jpg">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="images\korty\pkt_kort2.jpg">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="images\korty\pkt_kort3.jpg">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="images\korty\pkt_treningowy.jpg">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="images\korty\warta_kort1.jpg">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="images\korty\warta_kort2.jpg">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="images\korty\warta_szybki.jpg">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
   </ItemGroup>
 
   <PropertyGroup>

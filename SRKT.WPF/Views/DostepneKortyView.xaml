@@ -87,18 +87,20 @@
 
                                     <Grid Margin="5">
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="80"/>
+                                            <ColumnDefinition Width="120"/>
                                             <ColumnDefinition Width="70"/>
-                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="250"/>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
 
-                                        <Border Grid.Column="0" CornerRadius="4" ClipToBounds="True" Height="70" VerticalAlignment="Top">
-                                            <Image Source="{Binding ZdjecieSciezka}" Stretch="UniformToFill"/>
+                                        <Border Grid.Column="0" CornerRadius="4" ClipToBounds="True" Height="100" VerticalAlignment="Top">
+                                            <Image Source="{Binding ZdjecieSciezka}" 
+                                                 Stretch="UniformToFill"
+                                                 RenderOptions.BitmapScalingMode="HighQuality"/>
                                         </Border>
 
-                                        <Border Grid.Column="1" Background="#3498DB" CornerRadius="4" Margin="5,0,0,0" Height="70" VerticalAlignment="Top">
+                                        <Border Grid.Column="1" Background="#3498DB" CornerRadius="4" Margin="5,0,0,0" Height="100" VerticalAlignment="Top">
                                             <StackPanel VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding GodzinaStart}" Foreground="White" FontWeight="Bold" HorizontalAlignment="Center" FontSize="14"/>
                                                 <TextBlock Text="-" Foreground="White" Opacity="0.7" HorizontalAlignment="Center" FontSize="10"/>

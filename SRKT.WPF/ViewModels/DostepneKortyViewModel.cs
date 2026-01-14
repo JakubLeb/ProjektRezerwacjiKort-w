@@ -191,13 +191,17 @@ namespace SRKT.WPF.ViewModels
                     foreach (var slot in slotyKortu)
                     {
                         var obiekt = kort.ObiektSportowy;
+                        string baseUrl = "pack://application:,,,/SRKT.WPF;component/images/korty/";
+                        string nazwaPliku = "default_court.png"; // Domyślna nazwa
 
-                        // Ustalanie ścieżki zdjęcia (domyślna lub z bazy)
-                        string imgPath = "/SRKT.WPF/images/korty/default_court.png"; // Domyślna
                         if (!string.IsNullOrEmpty(kort.SciezkaZdjecia))
                         {
-                            imgPath = kort.SciezkaZdjecia;
+                            // Zabezpieczenie: jeśli w bazie jest pełna ścieżka "C:\...", wyciągamy tylko "plik.jpg"
+                            nazwaPliku = System.IO.Path.GetFileName(kort.SciezkaZdjecia);
                         }
+
+                        // Sklejamy poprawny adres zasobu
+                        string imgPath = baseUrl + nazwaPliku;
 
                         wszystkieOpcje.Add(new OpcjaRezerwacji
                         {
@@ -205,7 +209,7 @@ namespace SRKT.WPF.ViewModels
                             AdresObiektu = obiekt?.Adres ?? "Brak adresu",
                             NazwaObiektu = obiekt?.Nazwa ?? "Obiekt",
                             LinkDoMapy = obiekt?.LinkLokalizacji ?? "http://maps.google.com",
-                            ZdjecieSciezka = imgPath
+                            ZdjecieSciezka = imgPath // Przypisujemy naprawioną ścieżkę
                         });
                     }
                 }
