@@ -134,8 +134,9 @@
                                         </Button>
 
                                         <Button Grid.Column="4" Content="REZERWUJ" 
-                                                Command="{Binding DataContext.RezerwujCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                Command="{Binding DataContext.RezerwujCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
                                                 CommandParameter="{Binding}"
+                                                IsEnabled="{Binding JestDostepny}"
                                                 Background="#27AE60" Foreground="White" FontWeight="Bold" BorderThickness="0" 
                                                 Height="35" Padding="10,0" MinWidth="80" Cursor="Hand" VerticalAlignment="Center">
                                             <Button.Resources>

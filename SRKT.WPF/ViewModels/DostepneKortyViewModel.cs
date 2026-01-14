@@ -1,6 +1,7 @@
 ﻿using SRKT.Business.Services;
 using SRKT.Core.Models;
 using SRKT.DataAccess.Repositories;
+using SRKT.WPF.Views;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Windows;
@@ -16,6 +17,9 @@ namespace SRKT.WPF.ViewModels
         public string NazwaObiektu { get; set; }
         public string LinkDoMapy { get; set; }
         public string ZdjecieSciezka { get; set; }
+
+        // NOWE POLE:
+        public decimal CenaZaGodzine { get; set; }
 
         // Właściwości pomocnicze dla XAML
         public string GodzinaStart => Slot.Start.ToString("HH:mm");
@@ -176,31 +180,48 @@ namespace SRKT.WPF.ViewModels
 
         private async Task SzukajTerminowAsync()
         {
-            if (WybranaData.Date < DateTime.Today) { MessageBox.Show("Data z przeszłości."); return; }
+            if (WybranaData.Date < DateTime.Today)
+            {
+                MessageBox.Show("Data z przeszłości.");
+                return;
+            }
 
             try
             {
                 DostepneTerminy.Clear();
-                IEnumerable<Kort> kortyDoPrzeszukania = (WybranyKort != null) ? new List<Kort> { WybranyKort } : Korty;
+                IEnumerable<Kort> kortyDoPrzeszukania = (WybranyKort != null)
+                    ? new List<Kort> { WybranyKort }
+                    : Korty;
+
                 var wszystkieOpcje = new List<OpcjaRezerwacji>();
 
                 foreach (var kort in kortyDoPrzeszukania)
                 {
-                    var slotyKortu = await _rezerwacjaService.GetWolneTerminyAsync(kort.Id, WybranaData, WybranaDlugoscSesji);
+                    var slotyKortu = await _rezerwacjaService.GetWolneTerminyAsync(
+                        kort.Id,
+                        WybranaData,
+                        WybranaDlugoscSesji
+                    );
+
+                    // POPRAWKA: Pomijamy korty bez wolnych terminów
+                    if (slotyKortu == null || !slotyKortu.Any())
+                        continue;
 
                     foreach (var slot in slotyKortu)
                     {
+                        // POPRAWKA: Sprawdzamy czy slot jest rzeczywiście dostępny
+                        if (!slot.Dostepny)
+                            continue;
+
                         var obiekt = kort.ObiektSportowy;
                         string baseUrl = "pack://application:,,,/SRKT.WPF;component/images/korty/";
-                        string nazwaPliku = "default_court.png"; // Domyślna nazwa
+                        string nazwaPliku = "default_court.png";
 
                         if (!string.IsNullOrEmpty(kort.SciezkaZdjecia))
                         {
-                            // Zabezpieczenie: jeśli w bazie jest pełna ścieżka "C:\...", wyciągamy tylko "plik.jpg"
                             nazwaPliku = System.IO.Path.GetFileName(kort.SciezkaZdjecia);
                         }
 
-                        // Sklejamy poprawny adres zasobu
                         string imgPath = baseUrl + nazwaPliku;
 
                         wszystkieOpcje.Add(new OpcjaRezerwacji
@@ -209,7 +230,8 @@ namespace SRKT.WPF.ViewModels
                             AdresObiektu = obiekt?.Adres ?? "Brak adresu",
                             NazwaObiektu = obiekt?.Nazwa ?? "Obiekt",
                             LinkDoMapy = obiekt?.LinkLokalizacji ?? "http://maps.google.com",
-                            ZdjecieSciezka = imgPath // Przypisujemy naprawioną ścieżkę
+                            ZdjecieSciezka = imgPath,
+                            CenaZaGodzine = kort.CenaZaGodzine
                         });
                     }
                 }
@@ -220,21 +242,43 @@ namespace SRKT.WPF.ViewModels
                     .ThenBy(o => o.NazwaObiektu)
                     .ThenBy(o => o.Slot.NazwaKortu);
 
-                foreach (var opcja in przefiltrowane) DostepneTerminy.Add(opcja);
+                foreach (var opcja in przefiltrowane)
+                    DostepneTerminy.Add(opcja);
             }
-            catch (Exception ex) { MessageBox.Show($"Błąd: {ex.Message}"); }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Błąd: {ex.Message}");
+            }
         }
 
         private async Task RezerwujAsync(OpcjaRezerwacji opcja)
         {
             if (opcja == null || !opcja.JestDostepny) return;
-            try
+
+            // Tworzymy widok i viewmodel nowego okna
+            var window = new RezerwacjaWindow();
+
+            // Przekazujemy akcję zamykającą okno
+            var vm = new RezerwacjaViewModel(
+                opcja,
+                _rezerwacjaService,
+                _uzytkownik,
+                () => window.Close()
+            );
+
+            window.DataContext = vm;
+
+            // Ustawiamy okno główne jako rodzica (opcjonalne, ale zalecane)
+            if (Application.Current.MainWindow != window)
             {
-                await _rezerwacjaService.UtworzRezerwacjeAsync(opcja.Slot.KortId, _uzytkownik.Id, opcja.Slot.Start, opcja.Slot.Dlugosc, null);
-                MessageBox.Show($"Zarezerwowano: {opcja.Opis}\nObiekt: {opcja.NazwaObiektu}", "Sukces");
-                await SzukajTerminowAsync();
+                window.Owner = Application.Current.MainWindow;
             }
-            catch (Exception ex) { MessageBox.Show($"Błąd rezerwacji: {ex.Message}"); }
+
+            // Wyświetlamy okno jako modalne (blokuje spód)
+            window.ShowDialog();
+
+            // Po zamknięciu okna odświeżamy listę terminów (bo mogła zostać dokonana rezerwacja)
+            await SzukajTerminowAsync();
         }
     }
 }
