@@ -8,7 +8,7 @@
         public bool CzyAktywny { get; set; }
         public decimal CenaZaGodzine { get; set; }
         public int TypKortuId { get; set; }
-        public string SciezkaZdjecia { get; set; }
+        public string? SciezkaZdjecia { get; set; }
         public DateTime DataUtworzenia { get; set; }
         public DateTime? DataModyfikacji { get; set; }
 

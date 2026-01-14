@@ -193,7 +193,7 @@ namespace SRKT.WPF.ViewModels
                         var obiekt = kort.ObiektSportowy;
 
                         // Ustalanie ścieżki zdjęcia (domyślna lub z bazy)
-                        string imgPath = "/SRKT.WPF;component/Resources/default_court.png"; // Domyślna
+                        string imgPath = "/SRKT.WPF/images/korty/default_court.png"; // Domyślna
                         if (!string.IsNullOrEmpty(kort.SciezkaZdjecia))
                         {
                             imgPath = kort.SciezkaZdjecia;
