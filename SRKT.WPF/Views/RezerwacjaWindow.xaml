@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Potwierdzenie Rezerwacji" Height="467" Width="400"
+        Title="Potwierdzenie Rezerwacji" Height="562" Width="400"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize">
 
@@ -47,12 +47,19 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Text="DO ZAPŁATY:" FontSize="16" VerticalAlignment="Center"/>
-                        <TextBlock Grid.Column="1" Text="{Binding CenaCalkowita, StringFormat={}{0:C}}" 
+                        <TextBlock Grid.Column="1" Text="{Binding CenaCalkowita, StringFormat={}{0:N2} PLN}" 
                                    FontSize="18" FontWeight="Bold" Foreground="#2ecc71"/>
                     </Grid>
                 </StackPanel>
             </Border>
-
+            <TextBlock Text="Uwagi do rezerwacji (opcjonalne):" Margin="0,10,0,5" FontWeight="SemiBold"/>
+            <TextBox Text="{Binding Uwagi}" 
+                Height="60" 
+                TextWrapping="Wrap" 
+                AcceptsReturn="True"
+                VerticalScrollBarVisibility="Auto"
+                Padding="5"
+                BorderBrush="#DDDDDD"/> 
             <TextBlock Text="Metoda płatności:" FontWeight="SemiBold" Margin="0,0,0,5"/>
             <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
                 <RadioButton Content="Płatność na miejscu" IsChecked="{Binding CzyPlatnoscNaMiejscu}" Margin="0,0,15,0"/>

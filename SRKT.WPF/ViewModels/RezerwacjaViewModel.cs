@@ -19,6 +19,7 @@ namespace SRKT.WPF.ViewModels
         private bool _czyPlatnoscBlik;
         private string _kodBlik;
         private string _blikError;
+        private string _uwagi;
 
         public RezerwacjaViewModel(
             OpcjaRezerwacji opcja,
@@ -84,6 +85,15 @@ namespace SRKT.WPF.ViewModels
         }
 
         public string BlikError { get => _blikError; set => SetProperty(ref _blikError, value); }
+        public string Uwagi
+        {
+            get => _uwagi;
+            set
+            {
+                _uwagi = value;
+                OnPropertyChanged(nameof(Uwagi)); // lub SetProperty(ref _uwagi, value); zależnie od Twojego BaseViewModel
+            }
+        }
         public bool MaBlikError => !string.IsNullOrEmpty(BlikError);
 
         // --- Komendy ---
@@ -111,7 +121,7 @@ namespace SRKT.WPF.ViewModels
                     _uzytkownik.Id,
                     _opcja.Slot.Start,
                     _opcja.Slot.Dlugosc,
-                    null // Tutaj można przekazać ID płatności jeśli system to obsługuje
+                    Uwagi
                 );
 
                 MessageBox.Show("Rezerwacja zakończona sukcesem!", "Sukces");
