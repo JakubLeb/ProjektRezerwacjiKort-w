@@ -104,7 +104,12 @@ namespace SRKT.Business.Services
 
             return true;
         }
-
+        public async Task<IEnumerable<Rezerwacja>> PobierzWszystkieRezerwacjeZDatyAsync(DateTime data)
+        {
+            var wszystkie = await _rezerwacjaRepo.GetAllAsync();
+            // Filtrujemy po dacie (ignorując godzinę)
+            return wszystkie.Where(r => r.DataRezerwacji.Date == data.Date);
+        }
         public async Task<IEnumerable<TimeSlot>> GetWolneTerminyAsync(int kortId, DateTime data, decimal dlugoscSesji)
         {
             var kort = await _kortRepo.GetByIdAsync(kortId);

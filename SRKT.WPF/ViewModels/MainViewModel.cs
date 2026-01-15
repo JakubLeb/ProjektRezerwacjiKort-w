@@ -11,15 +11,18 @@ namespace SRKT.WPF.ViewModels
     {
         private readonly IKortRepository _kortRepo;
         private readonly IRezerwacjaService _rezerwacjaService;
+        private readonly IRepository<Uzytkownik> _uzytkownikRepo;
         private Uzytkownik _aktualnyUzytkownik;
         private object _aktualnyWidok;
 
         public MainViewModel(
             IKortRepository kortRepo,
-            IRezerwacjaService rezerwacjaService)
+            IRezerwacjaService rezerwacjaService,
+            IRepository<Uzytkownik> uzytkownikRepo)
         {
             _kortRepo = kortRepo;
             _rezerwacjaService = rezerwacjaService;
+            _uzytkownikRepo = uzytkownikRepo;
 
             PokazDostepneKortyCommand = new RelayCommand(_ => PokazDostepneKorty());
             PokazMojeRezerwacjeCommand = new RelayCommand(_ => PokazMojeRezerwacje());

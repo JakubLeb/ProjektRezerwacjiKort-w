@@ -4,6 +4,7 @@ using SRKT.Core.Models;
 using SRKT.DataAccess.Repositories;
 using SRKT.WPF.ViewModels;
 using SRKT.WPF.Views;
+using System;
 using System.Windows;
 
 namespace SRKT.WPF
@@ -12,11 +13,13 @@ namespace SRKT.WPF
     {
         private readonly MainViewModel _viewModel;
 
-        public MainWindow(IKortRepository kortRepo, IRezerwacjaService rezerwacjaService)
+        // AKTUALIZACJA: Dodano parametr 'uzytkownikRepo'
+        public MainWindow(IKortRepository kortRepo, IRezerwacjaService rezerwacjaService, IRepository<Uzytkownik> uzytkownikRepo)
         {
             InitializeComponent();
 
-            _viewModel = new MainViewModel(kortRepo, rezerwacjaService);
+            // Przekazujemy wszystkie 3 parametry do MainViewModel
+            _viewModel = new MainViewModel(kortRepo, rezerwacjaService, uzytkownikRepo);
             _viewModel.LogoutRequested += OnLogoutRequested;
 
             DataContext = _viewModel;
@@ -25,7 +28,12 @@ namespace SRKT.WPF
         public void SetUzytkownik(Uzytkownik uzytkownik)
         {
             _viewModel.AktualnyUzytkownik = uzytkownik;
-            _viewModel.PokazDostepneKortyCommand.Execute(null);
+
+            // Opcjonalnie: odśwież widok po zalogowaniu
+            if (_viewModel.PokazDostepneKortyCommand.CanExecute(null))
+            {
+                _viewModel.PokazDostepneKortyCommand.Execute(null);
+            }
         }
 
         private void OnLogoutRequested(object sender, EventArgs e)
@@ -33,11 +41,6 @@ namespace SRKT.WPF
             var loginWindow = ((App)Application.Current).ServiceProvider.GetRequiredService<LoginWindow>();
             loginWindow.Show();
             this.Close();
-        }
-
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-
         }
     }
 }

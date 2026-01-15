@@ -9,6 +9,7 @@ namespace SRKT.Business.Services
         Task<Rezerwacja> UtworzRezerwacjeAsync(int kortId, int uzytkownikId, DateTime dataRezerwacji, decimal iloscGodzin, string uwagi = null);
         Task<bool> AnulujRezerwacjeAsync(int rezerwacjaId);
         Task<bool> PotwierdRezerwacjeAsync(int rezerwacjaId);
+        Task<IEnumerable<Rezerwacja>> PobierzWszystkieRezerwacjeZDatyAsync(DateTime data);
 
         Task<IEnumerable<TimeSlot>> GetWolneTerminyAsync(int kortId, DateTime data, decimal dlugoscSesji);
     }
