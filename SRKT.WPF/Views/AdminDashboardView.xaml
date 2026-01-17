@@ -3,25 +3,77 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             mc:Ignorable="d">
-    <Grid Margin="20">
+             mc:Ignorable="d" d:DesignHeight="600" d:DesignWidth="800"
+             Background="#F5F6FA">
+    <Grid Margin="25">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
-            <TextBlock Text="Przegląd Dnia: " FontSize="24" FontWeight="Bold"/>
-            <TextBlock Text="{Binding DzisiejszaData, StringFormat=d}" FontSize="24" FontWeight="Bold" Foreground="#3498db"/>
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="Panel Administratora" FontSize="14" Foreground="#7F8C8D" FontWeight="SemiBold"/>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Przegląd Dnia: " FontSize="28" FontWeight="ExtraBold" Foreground="#2C3E50"/>
+                <TextBlock Text="{Binding DzisiejszaData, StringFormat=dd.MM.yyyy}" FontSize="28" FontWeight="ExtraBold" Foreground="#3498DB"/>
+            </StackPanel>
         </StackPanel>
 
-        <DataGrid Grid.Row="1" ItemsSource="{Binding DzisiejszeRezerwacje}" AutoGenerateColumns="False" IsReadOnly="True">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Godzina" Binding="{Binding GodzinaRozpoczecia, StringFormat={}{0}:00}" Width="80"/>
-                <DataGridTextColumn Header="Kort" Binding="{Binding KortId}" Width="80"/>
-                <DataGridTextColumn Header="Klient (ID)" Binding="{Binding UzytkownikId}" Width="80"/>
-                <DataGridTextColumn Header="Status" Binding="{Binding CzyOplacona}" Width="*"/>
-            </DataGrid.Columns>
-        </DataGrid>
+        <UniformGrid Grid.Row="1" Columns="3" Margin="0,0,0,25">
+            <Border Background="White" CornerRadius="10" Padding="20" Margin="0,0,10,0" BorderBrush="#DCDDE1" BorderThickness="1">
+                <StackPanel>
+                    <TextBlock Text="Wszystkie Rezerwacje" Foreground="#7F8C8D" FontSize="12" FontWeight="Bold"/>
+                    <TextBlock Text="{Binding DzisiejszeRezerwacje.Count}" FontSize="24" FontWeight="Bold" Foreground="#2C3E50" Margin="0,5,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <Border Background="White" CornerRadius="10" Padding="20" Margin="5,0,5,0" BorderBrush="#DCDDE1" BorderThickness="1">
+                <StackPanel>
+                    <TextBlock Text="Opłacone" Foreground="#7F8C8D" FontSize="12" FontWeight="Bold"/>
+                    <TextBlock Text="{Binding LiczbaOplaconych}" FontSize="24" FontWeight="Bold" Foreground="#27AE60" Margin="0,5,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <Border Background="White" CornerRadius="10" Padding="20" Margin="10,0,0,0" BorderBrush="#DCDDE1" BorderThickness="1">
+                <StackPanel>
+                    <TextBlock Text="Do zapłaty" Foreground="#7F8C8D" FontSize="12" FontWeight="Bold"/>
+                    <TextBlock Text="{Binding LiczbaNieoplaconych}" FontSize="24" FontWeight="Bold" Foreground="#E67E22" Margin="0,5,0,0"/>
+                </StackPanel>
+            </Border>
+        </UniformGrid>
+
+        <Border Grid.Row="2" Background="White" CornerRadius="10" BorderBrush="#DCDDE1" BorderThickness="1">
+            <DataGrid ItemsSource="{Binding DzisiejszeRezerwacje}" 
+                      AutoGenerateColumns="False" IsReadOnly="True"
+                      Background="Transparent" BorderThickness="0" RowHeight="45"
+                      GridLinesVisibility="None" CanUserAddRows="False">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Godzina" Binding="{Binding GodzinaRozpoczecia, StringFormat={}{0}:00}" Width="100"/>
+                    <DataGridTextColumn Header="Kort" Binding="{Binding KortId}" Width="100"/>
+                    <DataGridTextColumn Header="ID Klienta" Binding="{Binding UzytkownikId}" Width="120"/>
+
+                    <DataGridTemplateColumn Header="Status Płatności" Width="*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border x:Name="StatusBadge" CornerRadius="12" Padding="10,4" HorizontalAlignment="Left" Margin="5,0">
+                                    <TextBlock x:Name="StatusText" Foreground="White" FontSize="11" FontWeight="Bold"/>
+                                </Border>
+                                <DataTemplate.Triggers>
+                                    <DataTrigger Binding="{Binding CzyOplacona}" Value="True">
+                                        <Setter TargetName="StatusBadge" Property="Background" Value="#27AE60"/>
+                                        <Setter TargetName="StatusText" Property="Text" Value="OPŁACONO"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding CzyOplacona}" Value="False">
+                                        <Setter TargetName="StatusBadge" Property="Background" Value="#E67E22"/>
+                                        <Setter TargetName="StatusText" Property="Text" Value="BRAK WPŁATY"/>
+                                    </DataTrigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
     </Grid>
 </UserControl>

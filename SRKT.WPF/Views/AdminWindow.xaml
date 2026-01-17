@@ -22,12 +22,6 @@
                 <Button Content="Przegląd Dnia" Command="{Binding PokazDashboardCommand}" 
                         Height="40" Margin="0,5" Background="Transparent" Foreground="White" BorderThickness="0"/>
 
-                <Button Content="Zarządzanie Kortami" Command="{Binding PokazKortyCommand}" 
-                        Height="40" Margin="0,5" Background="Transparent" Foreground="White" BorderThickness="0"/>
-
-                <Button Content="Zarządzanie Rezerwacjami" Command="{Binding PokazRezerwacjeCommand}" 
-                        Height="40" Margin="0,5" Background="Transparent" Foreground="White" BorderThickness="0"/>
-
                 <Button Content="Użytkownicy" Command="{Binding PokazUzytkownikowCommand}" 
                         Height="40" Margin="0,5" Background="Transparent" Foreground="White" BorderThickness="0"/>
 
