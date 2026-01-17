@@ -37,9 +37,23 @@ namespace SRKT.WPF.ViewModels
             ZaladujDaneCommand = new RelayCommand(async _ => await ZaladujDaneAsync());
             OdswiezKalendarzCommand = new RelayCommand(async _ => await OdswiezKalendarzAsync());
             AnulujRezerwacjeCommand = new RelayCommand(async _ => await AnulujRezerwacjeAsync(), _ => WybranaRezerwacja != null);
-            PoprzedniDzienCommand = new RelayCommand(_ => { WybranaData = WybranaData.AddDays(-1); _ = OdswiezKalendarzAsync(); });
-            NastepnyDzienCommand = new RelayCommand(_ => { WybranaData = WybranaData.AddDays(1); _ = OdswiezKalendarzAsync(); });
-            DzisCommand = new RelayCommand(_ => { WybranaData = DateTime.Today; _ = OdswiezKalendarzAsync(); });
+
+            // POPRAWKA: Używamy async/await zamiast fire-and-forget
+            PoprzedniDzienCommand = new RelayCommand(async _ =>
+            {
+                WybranaData = WybranaData.AddDays(-1);
+                await OdswiezKalendarzAsync();
+            });
+            NastepnyDzienCommand = new RelayCommand(async _ =>
+            {
+                WybranaData = WybranaData.AddDays(1);
+                await OdswiezKalendarzAsync();
+            });
+            DzisCommand = new RelayCommand(async _ =>
+            {
+                WybranaData = DateTime.Today;
+                await OdswiezKalendarzAsync();
+            });
 
             _ = ZaladujDaneAsync();
         }
@@ -233,7 +247,7 @@ namespace SRKT.WPF.ViewModels
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Błąd odświeżania kalendarza: {ex.Message}", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+                System.Diagnostics.Debug.WriteLine($"Błąd odświeżania kalendarza: {ex.Message}");
             }
         }
 
