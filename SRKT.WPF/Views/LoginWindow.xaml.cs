@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using SRKT.Business.Services;
 using SRKT.Core.Models;
-using SRKT.DataAccess.Repositories; // Ważne: dodaj ten using dla repozytoriów
+using SRKT.DataAccess.Repositories;
 using SRKT.WPF.ViewModels;
 using System;
 using System.Windows;
@@ -18,9 +18,8 @@ namespace SRKT.WPF.Views
         {
             InitializeComponent();
 
-            // Pobieramy ServiceProvider z aplikacji, aby móc tworzyć inne okna i serwisy
             _serviceProvider = ((App)Application.Current).ServiceProvider;
-            
+
             _viewModel = new LoginViewModel(authService);
             _viewModel.LoginSuccessful += OnLoginSuccessful;
             _viewModel.NavigateToRegister += OnNavigateToRegister;
@@ -38,15 +37,22 @@ namespace SRKT.WPF.Views
 
         private void OnLoginSuccessful(object sender, Uzytkownik uzytkownik)
         {
-            // 1. Pobieramy serwisy z DI
             var rezerwacjaService = _serviceProvider.GetRequiredService<IRezerwacjaService>();
             var kortRepo = _serviceProvider.GetRequiredService<IKortRepository>();
             var uzytkownikRepo = _serviceProvider.GetRequiredService<IRepository<Uzytkownik>>();
+            var rezerwacjaRepo = _serviceProvider.GetRequiredService<IRezerwacjaRepository>();
+            var obiektRepo = _serviceProvider.GetRequiredService<IRepository<ObiektSportowy>>();
 
             if (uzytkownik.RolaId == 1) // ADMIN
             {
-                var adminVM = new AdminMainViewModel(rezerwacjaService, kortRepo, uzytkownikRepo);
+                var adminVM = new AdminMainViewModel(
+                    rezerwacjaService,
+                    kortRepo,
+                    uzytkownikRepo,
+                    rezerwacjaRepo,
+                    obiektRepo);
                 adminVM.AktualnyAdministrator = uzytkownik;
+
                 var adminWindow = new AdminWindow();
                 adminWindow.DataContext = adminVM;
 
@@ -59,15 +65,8 @@ namespace SRKT.WPF.Views
             }
             else // ZWYKŁY UŻYTKOWNIK
             {
-                // Tworzymy MainWindow, przekazując mu wymagane serwisy (w tym uzytkownikRepo!)
                 var mainWindow = new MainWindow(kortRepo, rezerwacjaService, uzytkownikRepo);
-
-                // Ustawiamy użytkownika (MainWindow samo ustawi to w swoim ViewModelu)
                 mainWindow.SetUzytkownik(uzytkownik);
-
-                // Nie musimy ręcznie tworzyć MainViewModel ani przypisywać DataContext,
-                // ponieważ MainWindow robi to teraz w swoim konstruktorze.
-
                 mainWindow.Show();
             }
 
@@ -76,7 +75,6 @@ namespace SRKT.WPF.Views
 
         private void OtworzPonownieLogowanie(Window currentWindow)
         {
-            // Pobieramy nową instancję LoginWindow z DI (aby wstrzyknąć IAuthService)
             var loginWindow = _serviceProvider.GetRequiredService<LoginWindow>();
             loginWindow.Show();
             currentWindow.Close();

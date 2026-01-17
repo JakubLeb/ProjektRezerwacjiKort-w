@@ -14,22 +14,27 @@ namespace SRKT.WPF.ViewModels
         private readonly IRezerwacjaService _rezerwacjaService;
         private readonly IKortRepository _kortRepo;
         private readonly IRepository<Uzytkownik> _uzytkownikRepo;
+        private readonly IRezerwacjaRepository _rezerwacjaRepo;
+        private readonly IRepository<ObiektSportowy> _obiektRepo;
 
         private object _aktualnyWidok;
-
-        // DODANO: Pole dla administratora
         private Uzytkownik _aktualnyAdministrator;
 
         public AdminMainViewModel(
             IRezerwacjaService rezerwacjaService,
             IKortRepository kortRepo,
-            IRepository<Uzytkownik> uzytkownikRepo)
+            IRepository<Uzytkownik> uzytkownikRepo,
+            IRezerwacjaRepository rezerwacjaRepo,
+            IRepository<ObiektSportowy> obiektRepo)
         {
             _rezerwacjaService = rezerwacjaService;
             _kortRepo = kortRepo;
             _uzytkownikRepo = uzytkownikRepo;
+            _rezerwacjaRepo = rezerwacjaRepo;
+            _obiektRepo = obiektRepo;
 
             PokazDashboardCommand = new RelayCommand(_ => PokazDashboard());
+            PokazKalendarzCommand = new RelayCommand(_ => PokazKalendarz());
             PokazKortyCommand = new RelayCommand(_ => PokazKorty());
             PokazRezerwacjeCommand = new RelayCommand(_ => PokazWszystkieRezerwacje());
             PokazUzytkownikowCommand = new RelayCommand(_ => PokazUzytkownikow());
@@ -38,7 +43,6 @@ namespace SRKT.WPF.ViewModels
             PokazDashboard();
         }
 
-        // DODANO: Właściwość publiczna
         public Uzytkownik AktualnyAdministrator
         {
             get => _aktualnyAdministrator;
@@ -52,6 +56,7 @@ namespace SRKT.WPF.ViewModels
         }
 
         public ICommand PokazDashboardCommand { get; }
+        public ICommand PokazKalendarzCommand { get; }
         public ICommand PokazKortyCommand { get; }
         public ICommand PokazRezerwacjeCommand { get; }
         public ICommand PokazUzytkownikowCommand { get; }
@@ -62,6 +67,13 @@ namespace SRKT.WPF.ViewModels
         private void PokazDashboard()
         {
             AktualnyWidok = new AdminDashboardView(_rezerwacjaService);
+        }
+
+        private void PokazKalendarz()
+        {
+            var viewModel = new AdminKalendarzViewModel(_rezerwacjaRepo, _kortRepo, _obiektRepo);
+            var view = new AdminKalendarzView { DataContext = viewModel };
+            AktualnyWidok = view;
         }
 
         private void PokazKorty()

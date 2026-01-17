@@ -1,0 +1,261 @@
+﻿<UserControl x:Class="SRKT.WPF.Views.AdminKalendarzView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d" 
+             d:DesignHeight="650" d:DesignWidth="900"
+             Background="#F5F6FA">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Nagłówek -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="Zarządzanie Kalendarzem" 
+                      FontSize="28" 
+                      FontWeight="ExtraBold" 
+                      Foreground="#2C3E50"/>
+            <TextBlock Text="Przeglądaj i zarządzaj rezerwacjami obiektów sportowych" 
+                      FontSize="14" 
+                      Foreground="#7F8C8D" 
+                      Margin="0,5,0,0"/>
+        </StackPanel>
+
+        <!-- Filtry -->
+        <Border Grid.Row="1" 
+               Background="White" 
+               CornerRadius="10" 
+               Padding="20" 
+               Margin="0,0,0,15"
+               BorderBrush="#DCDDE1" 
+               BorderThickness="1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Margin="0,0,15,0">
+                    <TextBlock Text="Obiekt sportowy:" 
+                              Foreground="#7F8C8D" 
+                              FontSize="12" 
+                              FontWeight="Bold" 
+                              Margin="0,0,0,5"/>
+                    <ComboBox ItemsSource="{Binding Obiekty}" 
+                             SelectedItem="{Binding WybranyObiekt}"
+                             DisplayMemberPath="Nazwa"
+                             Height="35"
+                             FontSize="14"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Margin="0,0,15,0">
+                    <TextBlock Text="Kort:" 
+                              Foreground="#7F8C8D" 
+                              FontSize="12" 
+                              FontWeight="Bold" 
+                              Margin="0,0,0,5"/>
+                    <ComboBox ItemsSource="{Binding Korty}" 
+                             SelectedItem="{Binding WybranyKort}"
+                             DisplayMemberPath="Nazwa"
+                             Height="35"
+                             FontSize="14"/>
+                </StackPanel>
+
+                <Button Grid.Column="2" 
+                       Content="🔄 Odśwież" 
+                       Command="{Binding OdswiezKalendarzCommand}"
+                       Background="#3498DB" 
+                       Foreground="White" 
+                       FontWeight="Bold"
+                       Height="35" 
+                       Padding="20,0"
+                       VerticalAlignment="Bottom"
+                       Cursor="Hand"/>
+            </Grid>
+        </Border>
+
+        <!-- Nawigacja dat -->
+        <Border Grid.Row="2" 
+               Background="White" 
+               CornerRadius="10" 
+               Padding="15" 
+               Margin="0,0,0,15"
+               BorderBrush="#DCDDE1" 
+               BorderThickness="1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0" 
+                       Content="◄ Poprzedni" 
+                       Command="{Binding PoprzedniDzienCommand}"
+                       Background="Transparent" 
+                       BorderBrush="#BDC3C7"
+                       Height="35" 
+                       Padding="15,0"
+                       Margin="0,0,10,0"
+                       Cursor="Hand"/>
+
+                <StackPanel Grid.Column="1" 
+                           Orientation="Horizontal" 
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center">
+                    <DatePicker SelectedDate="{Binding WybranaData}" 
+                               Height="35" 
+                               FontSize="16"
+                               Margin="0,0,15,0"
+                               SelectedDateChanged="DatePicker_SelectedDateChanged"/>
+                    <Button Content="📅 Dziś" 
+                           Command="{Binding DzisCommand}"
+                           Background="#27AE60" 
+                           Foreground="White" 
+                           FontWeight="Bold"
+                           Height="35" 
+                           Padding="15,0"
+                           Cursor="Hand"/>
+                </StackPanel>
+
+                <Button Grid.Column="2" 
+                       Content="Następny ►" 
+                       Command="{Binding NastepnyDzienCommand}"
+                       Background="Transparent" 
+                       BorderBrush="#BDC3C7"
+                       Height="35" 
+                       Padding="15,0"
+                       Margin="10,0,0,0"
+                       Cursor="Hand"/>
+            </Grid>
+        </Border>
+
+        <!-- Kalendarz rezerwacji -->
+        <Border Grid.Row="3" 
+               Background="White" 
+               CornerRadius="10" 
+               BorderBrush="#DCDDE1" 
+               BorderThickness="1">
+            <Grid>
+                <DataGrid ItemsSource="{Binding RezerwacjeKalendarza}" 
+                         SelectedItem="{Binding WybranaRezerwacja}"
+                         AutoGenerateColumns="False" 
+                         IsReadOnly="True"
+                         Background="Transparent" 
+                         BorderThickness="0" 
+                         RowHeight="50"
+                         GridLinesVisibility="Horizontal" 
+                         CanUserAddRows="False"
+                         HeadersVisibility="Column"
+                         AlternatingRowBackground="#F8F9FA">
+
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Godzina" 
+                                          Binding="{Binding Godzina}" 
+                                          Width="100"
+                                          FontWeight="Bold"
+                                          FontSize="14"/>
+
+                        <DataGridTextColumn Header="Kort" 
+                                          Binding="{Binding NazwaKortu}" 
+                                          Width="150"
+                                          FontSize="13"/>
+
+                        <DataGridTemplateColumn Header="Status" Width="120">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border x:Name="StatusBadge" 
+                                           CornerRadius="12" 
+                                           Padding="10,5" 
+                                           HorizontalAlignment="Center">
+                                        <TextBlock x:Name="StatusText" 
+                                                  Foreground="White" 
+                                                  FontSize="11" 
+                                                  FontWeight="Bold"
+                                                  Text="{Binding Status}"/>
+                                    </Border>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding CzyZajety}" Value="True">
+                                            <Setter TargetName="StatusBadge" Property="Background" Value="#E74C3C"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding CzyZajety}" Value="False">
+                                            <Setter TargetName="StatusBadge" Property="Background" Value="#27AE60"/>
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTextColumn Header="Klient" 
+                                          Binding="{Binding Klient}" 
+                                          Width="*"
+                                          FontSize="13"/>
+
+                        <DataGridTemplateColumn Header="Płatność" Width="120">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border x:Name="PaymentBadge" 
+                                           CornerRadius="12" 
+                                           Padding="10,5" 
+                                           HorizontalAlignment="Center"
+                                           Visibility="{Binding CzyZajety, Converter={StaticResource BoolToVis}}">
+                                        <TextBlock x:Name="PaymentText" 
+                                                  Foreground="White" 
+                                                  FontSize="11" 
+                                                  FontWeight="Bold"/>
+                                    </Border>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding CzyOplacona}" Value="True">
+                                            <Setter TargetName="PaymentBadge" Property="Background" Value="#27AE60"/>
+                                            <Setter TargetName="PaymentText" Property="Text" Value="OPŁACONO"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding CzyOplacona}" Value="False">
+                                            <Setter TargetName="PaymentBadge" Property="Background" Value="#E67E22"/>
+                                            <Setter TargetName="PaymentText" Property="Text" Value="DO ZAPŁATY"/>
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTemplateColumn Header="Akcje" Width="120">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="Anuluj" 
+                                           Command="{Binding DataContext.AnulujRezerwacjeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                           Visibility="{Binding CzyZajety, Converter={StaticResource BoolToVis}}"
+                                           Background="#E74C3C" 
+                                           Foreground="White" 
+                                           FontWeight="Bold"
+                                           Height="30" 
+                                           Padding="10,0"
+                                           Cursor="Hand"
+                                           HorizontalAlignment="Center"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <!-- Komunikat gdy brak danych -->
+                <TextBlock Text="Wybierz obiekt i kort aby zobaczyć kalendarz rezerwacji" 
+                          VerticalAlignment="Center" 
+                          HorizontalAlignment="Center"
+                          Foreground="#95A5A6" 
+                          FontSize="16"
+                          Visibility="{Binding RezerwacjeKalendarza.Count, Converter={StaticResource BoolToVis}, ConverterParameter=Inverse}"/>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

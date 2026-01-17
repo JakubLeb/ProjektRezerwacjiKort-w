@@ -11,11 +11,12 @@ namespace SRKT.WPF.ViewModels
         private string _email;
         private string _haslo;
         private string _komunikat;
+        private bool _isLoggingIn = false;
 
         public LoginViewModel(IAuthService authService)
         {
             _authService = authService;
-            ZalogujCommand = new RelayCommand(async _ => await ZalogujAsync(), _ => MozeZalogowac());
+            ZalogujCommand = new RelayCommand(async _ => await ZalogujAsync(), _ => MozeZalogowac() && !_isLoggingIn);
             ZarejestrujCommand = new RelayCommand(_ => PrzejdzDoRejestracji());
         }
 
@@ -50,6 +51,11 @@ namespace SRKT.WPF.ViewModels
 
         private async Task ZalogujAsync()
         {
+            if (_isLoggingIn) return;
+
+            _isLoggingIn = true;
+            Komunikat = string.Empty;
+
             try
             {
                 var uzytkownik = await _authService.LoginAsync(Email, Haslo);
@@ -65,6 +71,10 @@ namespace SRKT.WPF.ViewModels
             catch (Exception ex)
             {
                 Komunikat = $"Błąd: {ex.Message}";
+            }
+            finally
+            {
+                _isLoggingIn = false;
             }
         }
 
