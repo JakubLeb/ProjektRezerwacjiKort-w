@@ -4,17 +4,17 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Potwierdzenie Rezerwacji" Height="562" Width="400"
-        WindowStartupLocation="CenterScreen"
+        Title="Potwierdzenie Rezerwacji" Height="565" Width="400"
+        WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize">
-
-    <Window.Resources>
-        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
-    </Window.Resources>
 
     <Grid Margin="20">
         <StackPanel>
-            <TextBlock Text="Szczegóły Rezerwacji" FontSize="20" FontWeight="Bold" Margin="0,0,0,15" HorizontalAlignment="Center"/>
+            <TextBlock Text="Szczegóły Rezerwacji" 
+                      FontSize="20" 
+                      FontWeight="Bold" 
+                      Margin="0,0,0,15" 
+                      HorizontalAlignment="Center"/>
 
             <Border BorderBrush="#DDDDDD" BorderThickness="1" CornerRadius="5" Padding="10" Margin="0,0,0,15">
                 <StackPanel>
@@ -26,7 +26,7 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="Data:" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="Data:"/>
                         <TextBlock Grid.Column="1" Text="{Binding DataRezerwacji, StringFormat=dd.MM.yyyy}" FontWeight="SemiBold"/>
                     </Grid>
 
@@ -47,36 +47,54 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Text="DO ZAPŁATY:" FontSize="16" VerticalAlignment="Center"/>
-                        <TextBlock Grid.Column="1" Text="{Binding CenaCalkowita, StringFormat={}{0:N2} PLN}" 
-                                   FontSize="18" FontWeight="Bold" Foreground="#2ecc71"/>
+                        <TextBlock Grid.Column="1" 
+                                  Text="{Binding CenaCalkowita, StringFormat={}{0:N2} PLN}" 
+                                  FontSize="18" 
+                                  FontWeight="Bold" 
+                                  Foreground="#27AE60"/>
                     </Grid>
                 </StackPanel>
             </Border>
+
             <TextBlock Text="Uwagi do rezerwacji (opcjonalne):" Margin="0,0,0,5" FontWeight="SemiBold"/>
             <TextBox Text="{Binding Uwagi}" 
-                Height="60" 
-                TextWrapping="Wrap" 
-                AcceptsReturn="True"
-                VerticalScrollBarVisibility="Auto"
-                Padding="5"
-                BorderBrush="#DDDDDD"/> 
-            <TextBlock Text="Metoda płatności:" FontWeight="SemiBold" Margin="0,0,0,5"/>
-            <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
-                <RadioButton Content="Płatność na miejscu" IsChecked="{Binding CzyPlatnoscNaMiejscu}" Margin="0,0,15,0"/>
-                <RadioButton Content="BLIK" IsChecked="{Binding CzyPlatnoscBlik}"/>
-            </StackPanel>
+                    Height="60" 
+                    TextWrapping="Wrap" 
+                    AcceptsReturn="True"
+                    VerticalScrollBarVisibility="Auto"
+                    Padding="5"
+                    BorderBrush="#DDDDDD"
+                    Margin="0,0,0,15"/>
 
-            <StackPanel Visibility="{Binding CzyPlatnoscBlik, Converter={StaticResource BoolToVis}}">
-                <TextBlock Text="Wpisz kod BLIK (6 cyfr):" Margin="0,0,0,5"/>
-                <TextBox Text="{Binding KodBlik, UpdateSourceTrigger=PropertyChanged}" 
-                         MaxLength="6" FontSize="16" Padding="5" HorizontalContentAlignment="Center"/>
-                <TextBlock Text="{Binding BlikError}" Foreground="Red" FontSize="12" Margin="0,2,0,0" 
-                           Visibility="{Binding MaBlikError, Converter={StaticResource BoolToVis}}"/>
-            </StackPanel>
+            <TextBlock Text="Metoda płatności:" FontWeight="SemiBold" Margin="0,0,0,10"/>
 
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
-                <Button Content="Anuluj" Command="{Binding AnulujCommand}" Width="100" Margin="0,0,10,0" Height="40"/>
-                <Button Content="Zatwierdź i Rezerwuj" Command="{Binding PotwierdzCommand}" Width="180" Height="40" Background="#3498db" Foreground="White" FontWeight="Bold"/>
+            <Border BorderBrush="#DDDDDD" BorderThickness="1" CornerRadius="5" Padding="15" Margin="0,0,0,20">
+                <StackPanel>
+                    <RadioButton Content="💵 Płatność na miejscu (gotówka/karta)" 
+                                IsChecked="{Binding CzyPlatnoscNaMiejscu}" 
+                                Margin="0,0,0,10"
+                                FontSize="14"/>
+                    <RadioButton Content="📱 BLIK (zapłać teraz)" 
+                                IsChecked="{Binding CzyPlatnoscBlik}"
+                                FontSize="14"/>
+                </StackPanel>
+            </Border>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button Content="Anuluj" 
+                       Command="{Binding AnulujCommand}" 
+                       Width="100" 
+                       Margin="0,0,10,0" 
+                       Height="40"
+                       Background="#95A5A6"
+                       Foreground="White"/>
+                <Button Content="Zatwierdź rezerwację" 
+                       Command="{Binding PotwierdzCommand}" 
+                       Width="180" 
+                       Height="40" 
+                       Background="#27AE60" 
+                       Foreground="White" 
+                       FontWeight="Bold"/>
             </StackPanel>
         </StackPanel>
     </Grid>

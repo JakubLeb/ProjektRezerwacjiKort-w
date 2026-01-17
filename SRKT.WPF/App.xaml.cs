@@ -38,6 +38,7 @@ namespace SRKT.WPF
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IRezerwacjaService, RezerwacjaService>();
             services.AddScoped<IPowiadomienieService, PowiadomienieService>();
+            services.AddScoped<IPlatnoscService, PlatnoscService>();
 
             // Views
             services.AddTransient<LoginWindow>();

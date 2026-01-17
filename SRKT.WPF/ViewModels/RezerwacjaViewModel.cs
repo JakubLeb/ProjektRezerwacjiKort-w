@@ -1,8 +1,10 @@
 ﻿using SRKT.Business.Services;
 using SRKT.Core.Models;
+using SRKT.WPF.Views;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using SRKT.Business.Services;
 using System.Windows;
 using System.Windows.Input;
 
@@ -12,23 +14,24 @@ namespace SRKT.WPF.ViewModels
     {
         private readonly OpcjaRezerwacji _opcja;
         private readonly IRezerwacjaService _rezerwacjaService;
+        private readonly IPlatnoscService _platnoscService;
         private readonly Uzytkownik _uzytkownik;
         private readonly Action _closeAction;
 
         private bool _czyPlatnoscNaMiejscu = true;
         private bool _czyPlatnoscBlik;
-        private string _kodBlik;
-        private string _blikError;
         private string _uwagi;
 
         public RezerwacjaViewModel(
             OpcjaRezerwacji opcja,
             IRezerwacjaService rezerwacjaService,
+            IPlatnoscService platnoscService,
             Uzytkownik uzytkownik,
             Action closeAction)
         {
             _opcja = opcja;
             _rezerwacjaService = rezerwacjaService;
+            _platnoscService = platnoscService;
             _uzytkownik = uzytkownik;
             _closeAction = closeAction;
 
@@ -55,7 +58,6 @@ namespace SRKT.WPF.ViewModels
                 if (SetProperty(ref _czyPlatnoscNaMiejscu, value))
                 {
                     if (value) CzyPlatnoscBlik = false;
-                    BlikError = string.Empty; // Reset błędu przy zmianie
                 }
             }
         }
@@ -72,29 +74,11 @@ namespace SRKT.WPF.ViewModels
             }
         }
 
-        public string KodBlik
-        {
-            get => _kodBlik;
-            set
-            {
-                if (SetProperty(ref _kodBlik, value))
-                {
-                    BlikError = string.Empty; // Reset błędu przy wpisywaniu
-                }
-            }
-        }
-
-        public string BlikError { get => _blikError; set => SetProperty(ref _blikError, value); }
         public string Uwagi
         {
             get => _uwagi;
-            set
-            {
-                _uwagi = value;
-                OnPropertyChanged(nameof(Uwagi)); // lub SetProperty(ref _uwagi, value); zależnie od Twojego BaseViewModel
-            }
+            set => SetProperty(ref _uwagi, value);
         }
-        public bool MaBlikError => !string.IsNullOrEmpty(BlikError);
 
         // --- Komendy ---
         public ICommand PotwierdzCommand { get; }
@@ -102,21 +86,10 @@ namespace SRKT.WPF.ViewModels
 
         private async Task PotwierdzAsync()
         {
-            // Walidacja BLIK
-            if (CzyPlatnoscBlik)
-            {
-                if (string.IsNullOrWhiteSpace(KodBlik) || KodBlik.Length != 6 || !KodBlik.All(char.IsDigit))
-                {
-                    BlikError = "Kod BLIK musi składać się z 6 cyfr.";
-                    return;
-                }
-                // Tutaj normalnie nastąpiłaby komunikacja z bramką płatności
-            }
-
             try
             {
-                // Wywołanie serwisu
-                await _rezerwacjaService.UtworzRezerwacjeAsync(
+                // Utwórz rezerwację
+                var nowaRezerwacja = await _rezerwacjaService.UtworzRezerwacjeAsync(
                     _opcja.Slot.KortId,
                     _uzytkownik.Id,
                     _opcja.Slot.Start,
@@ -124,12 +97,58 @@ namespace SRKT.WPF.ViewModels
                     Uwagi
                 );
 
-                MessageBox.Show("Rezerwacja zakończona sukcesem!", "Sukces");
-                _closeAction(); // Zamknij okno
+                // Jeśli wybrano płatność BLIK - otwórz okno płatności
+                if (CzyPlatnoscBlik)
+                {
+                    var blikWindow = new BlikPaymentWindow();
+                    blikWindow.Owner = Application.Current.MainWindow;
+
+                    var blikViewModel = new BlikPaymentViewModel(
+                        _platnoscService,
+                        nowaRezerwacja.Id,
+                        CenaCalkowita,
+                        (sukces) =>
+                        {
+                            blikWindow.Close();
+
+                            if (sukces)
+                            {
+                                MessageBox.Show(
+                                    "Rezerwacja została utworzona i opłacona!",
+                                    "Sukces",
+                                    MessageBoxButton.OK,
+                                    MessageBoxImage.Information);
+                            }
+                            else
+                            {
+                                MessageBox.Show(
+                                    "Rezerwacja została utworzona.\nPłatność można dokonać na miejscu.",
+                                    "Rezerwacja utworzona",
+                                    MessageBoxButton.OK,
+                                    MessageBoxImage.Information);
+                            }
+
+                            _closeAction();
+                        }
+                    );
+
+                    blikWindow.DataContext = blikViewModel;
+                    blikWindow.ShowDialog();
+                }
+                else
+                {
+                    // Płatność na miejscu
+                    MessageBox.Show(
+                        "Rezerwacja zakończona sukcesem!\nPłatność do uregulowania na miejscu.",
+                        "Sukces",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+                    _closeAction();
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Błąd rezerwacji: {ex.Message}", "Błąd");
+                MessageBox.Show($"Błąd rezerwacji: {ex.Message}", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

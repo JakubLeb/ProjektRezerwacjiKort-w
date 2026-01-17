@@ -255,30 +255,29 @@ namespace SRKT.WPF.ViewModels
         {
             if (opcja == null || !opcja.JestDostepny) return;
 
-            // Tworzymy widok i viewmodel nowego okna
             var window = new RezerwacjaWindow();
 
-            // Przekazujemy akcję zamykającą okno
+            // Pobierz serwis płatności z DI
+            var platnoscService = ((App)Application.Current).ServiceProvider
+                .GetService(typeof(IPlatnoscService)) as IPlatnoscService;
+
             var vm = new RezerwacjaViewModel(
                 opcja,
                 _rezerwacjaService,
+                platnoscService,
                 _uzytkownik,
                 () => window.Close()
             );
 
             window.DataContext = vm;
 
-            // Ustawiamy okno główne jako rodzica (opcjonalne, ale zalecane)
             if (Application.Current.MainWindow != window)
             {
                 window.Owner = Application.Current.MainWindow;
             }
 
-            // Wyświetlamy okno jako modalne (blokuje spód)
             window.ShowDialog();
-
-            // Po zamknięciu okna odświeżamy listę terminów (bo mogła zostać dokonana rezerwacja)
             await SzukajTerminowAsync();
         }
     }
-}
+    }
