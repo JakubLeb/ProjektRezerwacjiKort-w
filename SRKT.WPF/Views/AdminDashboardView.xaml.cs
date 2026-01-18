@@ -2,8 +2,8 @@
 using SRKT.Core.Models;
 using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel; // Potrzebne do powiadomień
-using System.Linq; // Potrzebne do zliczania rezerwacji
+using System.ComponentModel;
+using System.Linq;
 using System.Windows.Controls;
 
 namespace SRKT.WPF.Views
@@ -15,8 +15,8 @@ namespace SRKT.WPF.Views
         public DateTime DzisiejszaData { get; set; } = DateTime.Now;
 
         // Statystyki obliczane na bieżąco
-        public int LiczbaOplaconych => DzisiejszeRezerwacje.Count(r => r.CzyOplacona);
-        public int LiczbaNieoplaconych => DzisiejszeRezerwacje.Count(r => !r.CzyOplacona);
+        public int LiczbaOplaconych => DzisiejszeRezerwacje?.Count(r => r.CzyOplacona) ?? 0;
+        public int LiczbaNieoplaconych => DzisiejszeRezerwacje?.Count(r => !r.CzyOplacona) ?? 0;
 
         public AdminDashboardView(IRezerwacjaService service)
         {
@@ -29,14 +29,32 @@ namespace SRKT.WPF.Views
 
         private async void ZaladujDane()
         {
-            var dane = await _service.PobierzWszystkieRezerwacjeZDatyAsync(DateTime.Today);
-            DzisiejszeRezerwacje.Clear();
-            foreach (var r in dane) DzisiejszeRezerwacje.Add(r);
+            try
+            {
+                // Pobierz rezerwacje z pełnymi danymi (Include Kort, Uzytkownik, StatusRezerwacji)
+                var dane = await _service.PobierzWszystkieRezerwacjeZDatyAsync(DateTime.Today);
 
-            // Powiadom UI, że statystyki się zmieniły
-            OnPropertyChanged(nameof(LiczbaOplaconych));
-            OnPropertyChanged(nameof(LiczbaNieoplaconych));
-            OnPropertyChanged(nameof(DzisiejszeRezerwacje));
+                DzisiejszeRezerwacje.Clear();
+
+                // Sortuj po godzinie rozpoczęcia
+                var posortowane = dane
+                    .Where(r => r.StatusRezerwacjiId != 3) // Pomijamy anulowane
+                    .OrderBy(r => r.DataRezerwacji);
+
+                foreach (var r in posortowane)
+                {
+                    DzisiejszeRezerwacje.Add(r);
+                }
+
+                // Powiadom UI, że statystyki się zmieniły
+                OnPropertyChanged(nameof(LiczbaOplaconych));
+                OnPropertyChanged(nameof(LiczbaNieoplaconych));
+                OnPropertyChanged(nameof(DzisiejszeRezerwacje));
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Błąd ładowania danych: {ex.Message}");
+            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

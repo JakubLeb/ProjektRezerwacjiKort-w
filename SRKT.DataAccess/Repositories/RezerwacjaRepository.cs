@@ -19,6 +19,9 @@ namespace SRKT.DataAccess.Repositories
         {
             return await _dbSet
                 .Include(r => r.Kort)
+                    .ThenInclude(k => k.ObiektSportowy)
+                .Include(r => r.Kort)
+                    .ThenInclude(k => k.TypKortu)
                 .Include(r => r.StatusRezerwacji)
                 .Where(r => r.UzytkownikId == uzytkownikId)
                 .OrderByDescending(r => r.DataRezerwacji)
@@ -33,6 +36,8 @@ namespace SRKT.DataAccess.Repositories
             return await _dbSet
                 .Include(r => r.Uzytkownik)
                 .Include(r => r.StatusRezerwacji)
+                .Include(r => r.Kort)
+                    .ThenInclude(k => k.ObiektSportowy)
                 .Where(r => r.KortId == kortId
                     && r.DataRezerwacji >= dataStart
                     && r.DataRezerwacji < dataEnd
@@ -41,10 +46,19 @@ namespace SRKT.DataAccess.Repositories
                 .ToListAsync();
         }
 
+        /// <summary>
+        /// Pobiera rezerwacje z zakresu dat z pełnymi danymi relacyjnymi:
+        /// - Kort (z ObiektSportowy i TypKortu)
+        /// - Uzytkownik
+        /// - StatusRezerwacji
+        /// </summary>
         public async Task<IEnumerable<Rezerwacja>> GetRezerwacjeByDataAsync(DateTime dataOd, DateTime dataDo)
         {
             return await _dbSet
                 .Include(r => r.Kort)
+                    .ThenInclude(k => k.ObiektSportowy)
+                .Include(r => r.Kort)
+                    .ThenInclude(k => k.TypKortu)
                 .Include(r => r.Uzytkownik)
                 .Include(r => r.StatusRezerwacji)
                 .Where(r => r.DataRezerwacji >= dataOd && r.DataRezerwacji <= dataDo)

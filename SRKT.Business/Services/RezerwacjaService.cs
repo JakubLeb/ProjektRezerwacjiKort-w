@@ -104,12 +104,20 @@ namespace SRKT.Business.Services
 
             return true;
         }
+
+        /// <summary>
+        /// Pobiera wszystkie rezerwacje z danego dnia z pełnymi danymi relacyjnymi
+        /// (Kort, ObiektSportowy, Uzytkownik, StatusRezerwacji)
+        /// </summary>
         public async Task<IEnumerable<Rezerwacja>> PobierzWszystkieRezerwacjeZDatyAsync(DateTime data)
         {
-            var wszystkie = await _rezerwacjaRepo.GetAllAsync();
-            // Filtrujemy po dacie (ignorując godzinę)
-            return wszystkie.Where(r => r.DataRezerwacji.Date == data.Date);
+            // Używamy nowej metody z repozytorium, która pobiera pełne dane
+            var dataOd = data.Date;
+            var dataDo = data.Date.AddDays(1).AddTicks(-1);
+
+            return await _rezerwacjaRepo.GetRezerwacjeByDataAsync(dataOd, dataDo);
         }
+
         public async Task<IEnumerable<TimeSlot>> GetWolneTerminyAsync(int kortId, DateTime data, decimal dlugoscSesji)
         {
             var kort = await _kortRepo.GetByIdAsync(kortId);
@@ -155,4 +163,4 @@ namespace SRKT.Business.Services
             return slots;
         }
     }
-    }
+}

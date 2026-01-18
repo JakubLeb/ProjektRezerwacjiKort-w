@@ -19,7 +19,7 @@ namespace SRKT.Business.Services
         public async Task<bool> PrzetworzPlatnoscBlikAsync(int rezerwacjaId, string kodBlik, decimal kwota)
         {
             // Symulacja przetwarzania płatności (2 sekundy opóźnienia)
-            await Task.Delay(2000);
+            await Task.Delay(1000);
 
             // Walidacja kodu BLIK (6 cyfr)
             if (string.IsNullOrWhiteSpace(kodBlik) || kodBlik.Length != 6 || !kodBlik.All(char.IsDigit))
