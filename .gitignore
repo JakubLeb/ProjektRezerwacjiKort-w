@@ -416,3 +416,5 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+SRKT.WPF/images/korty/*
+!SRKT.WPF/images/korty/default_court.png
