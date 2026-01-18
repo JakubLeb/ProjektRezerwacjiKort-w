@@ -3,173 +3,314 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             mc:Ignorable="d" d:DesignHeight="600" d:DesignWidth="1000"
+             mc:Ignorable="d" d:DesignHeight="800" d:DesignWidth="1000"
              Background="#F5F6FA">
-    <Grid Margin="25">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="25">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Margin="0,0,0,20">
-            <TextBlock Text="Panel Administratora" FontSize="14" Foreground="#7F8C8D" FontWeight="SemiBold"/>
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="Przegląd Dnia: " FontSize="28" FontWeight="ExtraBold" Foreground="#2C3E50"/>
-                <TextBlock Text="{Binding DzisiejszaData, StringFormat=dd.MM.yyyy}" FontSize="28" FontWeight="ExtraBold" Foreground="#3498DB"/>
+            <!-- Nagłówek -->
+            <StackPanel Grid.Row="0" Margin="0,0,0,20">
+                <TextBlock Text="Panel Administratora" FontSize="14" Foreground="#7F8C8D" FontWeight="SemiBold"/>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Przegląd Dnia: " FontSize="28" FontWeight="ExtraBold" Foreground="#2C3E50"/>
+                    <TextBlock Text="{Binding DzisiejszaData, StringFormat=dd.MM.yyyy}" FontSize="28" FontWeight="ExtraBold" Foreground="#3498DB"/>
+                </StackPanel>
             </StackPanel>
-        </StackPanel>
 
-        <UniformGrid Grid.Row="1" Columns="3" Margin="0,0,0,25">
-            <Border Background="White" CornerRadius="10" Padding="20" Margin="0,0,10,0" BorderBrush="#DCDDE1" BorderThickness="1">
-                <StackPanel>
-                    <TextBlock Text="Wszystkie Rezerwacje" Foreground="#7F8C8D" FontSize="12" FontWeight="Bold"/>
-                    <TextBlock Text="{Binding DzisiejszeRezerwacje.Count}" FontSize="24" FontWeight="Bold" Foreground="#2C3E50" Margin="0,5,0,0"/>
-                </StackPanel>
-            </Border>
+            <!-- Kafelki statystyk -->
+            <UniformGrid Grid.Row="1" Columns="4" Margin="0,0,0,25">
+                <Border Background="White" CornerRadius="10" Padding="20" Margin="0,0,10,0" BorderBrush="#DCDDE1" BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="Wszystkie Rezerwacje" Foreground="#7F8C8D" FontSize="12" FontWeight="Bold"/>
+                        <TextBlock Text="{Binding DzisiejszeRezerwacje.Count}" FontSize="24" FontWeight="Bold" Foreground="#2C3E50" Margin="0,5,0,0"/>
+                    </StackPanel>
+                </Border>
 
-            <Border Background="White" CornerRadius="10" Padding="20" Margin="5,0,5,0" BorderBrush="#DCDDE1" BorderThickness="1">
-                <StackPanel>
-                    <TextBlock Text="Opłacone" Foreground="#7F8C8D" FontSize="12" FontWeight="Bold"/>
-                    <TextBlock Text="{Binding LiczbaOplaconych}" FontSize="24" FontWeight="Bold" Foreground="#27AE60" Margin="0,5,0,0"/>
-                </StackPanel>
-            </Border>
+                <Border Background="White" CornerRadius="10" Padding="20" Margin="5,0,5,0" BorderBrush="#DCDDE1" BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="Opłacone" Foreground="#7F8C8D" FontSize="12" FontWeight="Bold"/>
+                        <TextBlock Text="{Binding LiczbaOplaconych}" FontSize="24" FontWeight="Bold" Foreground="#27AE60" Margin="0,5,0,0"/>
+                    </StackPanel>
+                </Border>
 
-            <Border Background="White" CornerRadius="10" Padding="20" Margin="10,0,0,0" BorderBrush="#DCDDE1" BorderThickness="1">
-                <StackPanel>
-                    <TextBlock Text="Do zapłaty" Foreground="#7F8C8D" FontSize="12" FontWeight="Bold"/>
-                    <TextBlock Text="{Binding LiczbaNieoplaconych}" FontSize="24" FontWeight="Bold" Foreground="#E67E22" Margin="0,5,0,0"/>
-                </StackPanel>
-            </Border>
-        </UniformGrid>
+                <Border Background="White" CornerRadius="10" Padding="20" Margin="5,0,5,0" BorderBrush="#DCDDE1" BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="Do zapłaty" Foreground="#7F8C8D" FontSize="12" FontWeight="Bold"/>
+                        <TextBlock Text="{Binding LiczbaNieoplaconych}" FontSize="24" FontWeight="Bold" Foreground="#E67E22" Margin="0,5,0,0"/>
+                    </StackPanel>
+                </Border>
 
-        <Border Grid.Row="2" Background="White" CornerRadius="10" BorderBrush="#DCDDE1" BorderThickness="1">
-            <DataGrid ItemsSource="{Binding DzisiejszeRezerwacje}" 
-                      AutoGenerateColumns="False" IsReadOnly="True"
-                      Background="Transparent" BorderThickness="0" RowHeight="55"
-                      GridLinesVisibility="Horizontal" CanUserAddRows="False"
-                      HorizontalGridLinesBrush="#EEEEEE"
-                      HeadersVisibility="Column">
-                <DataGrid.Columns>
-                    <!-- Godziny: od - do -->
-                    <DataGridTemplateColumn Header="Godziny" Width="130">
-                        <DataGridTemplateColumn.CellTemplate>
+                <!-- NOWY KAFELEK: Oczekujące rejestracje -->
+                <Border Background="White" CornerRadius="10" Padding="20" Margin="10,0,0,0" BorderBrush="#DCDDE1" BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="Oczekujące rejestracje" Foreground="#7F8C8D" FontSize="12" FontWeight="Bold"/>
+                        <TextBlock Text="{Binding OczekujaceRejestracje.Count}" FontSize="24" FontWeight="Bold" Foreground="#9B59B6" Margin="0,5,0,0"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <!-- NOWA SEKCJA: Oczekujące rejestracje -->
+            <Border Grid.Row="2" Background="White" CornerRadius="10" BorderBrush="#DCDDE1" BorderThickness="1" Margin="0,0,0,25"
+                    Visibility="{Binding CzyPokazacOczekujace}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Nagłówek sekcji -->
+                    <Border Grid.Row="0" Background="#9B59B6" CornerRadius="10,10,0,0" Padding="15">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="👤" FontSize="18" Margin="0,0,10,0"/>
+                            <TextBlock Text="Nowe rejestracje oczekujące na zatwierdzenie" 
+                                      FontSize="16" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Lista oczekujących -->
+                    <ItemsControl Grid.Row="1" ItemsSource="{Binding OczekujaceRejestracje}" Margin="10">
+                        <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0">
-                                    <TextBlock Text="{Binding DataRezerwacji, StringFormat=HH:mm}" 
-                                              FontWeight="Bold" Foreground="#2C3E50" FontSize="14"/>
-                                    <TextBlock Text=" - " Foreground="#7F8C8D" FontSize="14"/>
-                                    <TextBlock Text="{Binding DataZakonczenia, StringFormat=HH:mm}" 
-                                              FontWeight="Bold" Foreground="#2C3E50" FontSize="14"/>
-                                </StackPanel>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
+                                <Border BorderBrush="#EEEEEE" BorderThickness="0,0,0,1" Padding="10" Margin="0,0,0,5">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
 
-                    <!-- Czas trwania -->
-                    <DataGridTemplateColumn Header="Czas" Width="70">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Border Background="#ECF0F1" CornerRadius="10" Padding="8,4" 
-                                       HorizontalAlignment="Center" VerticalAlignment="Center">
-                                    <TextBlock VerticalAlignment="Center">
-                                        <Run Text="{Binding IloscGodzin, StringFormat={}{0:0.#}}" FontWeight="Bold" Foreground="#2C3E50"/>
-                                        <Run Text="h" Foreground="#7F8C8D"/>
-                                    </TextBlock>
+                                        <!-- Dane użytkownika -->
+                                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                            <TextBlock FontWeight="Bold" FontSize="14" Foreground="#2C3E50">
+                                                <Run Text="{Binding Imie}"/>
+                                                <Run Text=" "/>
+                                                <Run Text="{Binding Nazwisko}"/>
+                                            </TextBlock>
+                                            <TextBlock Text="{Binding Email}" Foreground="#7F8C8D" FontSize="12"/>
+                                        </StackPanel>
+
+                                        <!-- Data rejestracji -->
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="20,0">
+                                            <TextBlock Text="Data rejestracji:" Foreground="#7F8C8D" FontSize="10"/>
+                                            <TextBlock Text="{Binding DataUtworzenia, StringFormat=dd.MM.yyyy HH:mm}" 
+                                                      FontWeight="SemiBold" FontSize="12" Foreground="#2C3E50"/>
+                                        </StackPanel>
+
+                                        <!-- Przycisk Zatwierdź -->
+                                        <Button Grid.Column="2" 
+                                               Content="✓ Zatwierdź" 
+                                               Command="{Binding DataContext.ZatwierdzRejestracjeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                               CommandParameter="{Binding}"
+                                               Background="#27AE60" 
+                                               Foreground="White" 
+                                               FontWeight="Bold"
+                                               Height="35" 
+                                               Padding="15,0"
+                                               Margin="0,0,10,0"
+                                               Cursor="Hand">
+                                            <Button.Style>
+                                                <Style TargetType="Button">
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border Background="{TemplateBinding Background}" 
+                                                                       CornerRadius="5" 
+                                                                       Padding="{TemplateBinding Padding}">
+                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                    <Style.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter Property="Background" Value="#219A52"/>
+                                                        </Trigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+
+                                        <!-- Przycisk Odrzuć -->
+                                        <Button Grid.Column="3" 
+                                               Content="✗ Odrzuć" 
+                                               Command="{Binding DataContext.OdrzucRejestracjeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                               CommandParameter="{Binding}"
+                                               Background="#E74C3C" 
+                                               Foreground="White" 
+                                               FontWeight="Bold"
+                                               Height="35" 
+                                               Padding="15,0"
+                                               Cursor="Hand">
+                                            <Button.Style>
+                                                <Style TargetType="Button">
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border Background="{TemplateBinding Background}" 
+                                                                       CornerRadius="5" 
+                                                                       Padding="{TemplateBinding Padding}">
+                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                    <Style.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter Property="Background" Value="#C0392B"/>
+                                                        </Trigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                    </Grid>
                                 </Border>
                             </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+            </Border>
 
-                    <!-- Kort i obiekt -->
-                    <DataGridTemplateColumn Header="Kort / Obiekt" Width="200">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <StackPanel VerticalAlignment="Center" Margin="10,0">
-                                    <TextBlock Text="{Binding Kort.Nazwa, FallbackValue='Brak danych'}" 
-                                              FontWeight="SemiBold" Foreground="#2C3E50" FontSize="13"/>
-                                    <TextBlock Text="{Binding Kort.ObiektSportowy.Nazwa, FallbackValue=''}" 
-                                              Foreground="#7F8C8D" FontSize="11" TextTrimming="CharacterEllipsis"/>
-                                </StackPanel>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
+            <!-- Nagłówek rezerwacji -->
+            <TextBlock Grid.Row="3" Text="Dzisiejsze rezerwacje" FontSize="18" FontWeight="Bold" 
+                      Foreground="#2C3E50" Margin="0,0,0,10"/>
 
-                    <!-- Klient: imię, nazwisko, email -->
-                    <DataGridTemplateColumn Header="Klient" Width="*">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <StackPanel VerticalAlignment="Center" Margin="10,0">
-                                    <TextBlock Text="{Binding Uzytkownik.PelneImieNazwisko, FallbackValue='Nieznany klient'}" 
-                                              FontWeight="SemiBold" Foreground="#2C3E50" FontSize="13"/>
-                                    <TextBlock Text="{Binding Uzytkownik.Email, FallbackValue=''}" 
-                                              Foreground="#7F8C8D" FontSize="11" TextTrimming="CharacterEllipsis"/>
-                                </StackPanel>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
+            <!-- Tabela rezerwacji -->
+            <Border Grid.Row="4" Background="White" CornerRadius="10" BorderBrush="#DCDDE1" BorderThickness="1" MinHeight="300">
+                <DataGrid ItemsSource="{Binding DzisiejszeRezerwacje}" 
+                          AutoGenerateColumns="False" IsReadOnly="True"
+                          Background="Transparent" BorderThickness="0" RowHeight="55"
+                          GridLinesVisibility="Horizontal" CanUserAddRows="False"
+                          HorizontalGridLinesBrush="#EEEEEE"
+                          HeadersVisibility="Column">
+                    <DataGrid.Columns>
+                        <!-- Godziny: od - do -->
+                        <DataGridTemplateColumn Header="Godziny" Width="130">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0">
+                                        <TextBlock Text="{Binding DataRezerwacji, StringFormat=HH:mm}" 
+                                                  FontWeight="Bold" Foreground="#2C3E50" FontSize="14"/>
+                                        <TextBlock Text=" - " Foreground="#7F8C8D" FontSize="14"/>
+                                        <TextBlock Text="{Binding DataZakonczenia, StringFormat=HH:mm}" 
+                                                  FontWeight="Bold" Foreground="#2C3E50" FontSize="14"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
 
-                    <!-- Kwota -->
-                    <DataGridTemplateColumn Header="Kwota" Width="100">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding KosztCalkowity, StringFormat={}{0:N2} zł}" 
-                                          VerticalAlignment="Center" Margin="10,0"
-                                          FontWeight="Bold" Foreground="#2C3E50" FontSize="13"/>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
+                        <!-- Czas trwania -->
+                        <DataGridTemplateColumn Header="Czas" Width="70">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border Background="#ECF0F1" CornerRadius="10" Padding="8,4" 
+                                           HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock VerticalAlignment="Center">
+                                            <Run Text="{Binding IloscGodzin, StringFormat={}{0:0.#}}" FontWeight="Bold" Foreground="#2C3E50"/>
+                                            <Run Text="h" Foreground="#7F8C8D"/>
+                                        </TextBlock>
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
 
-                    <!-- Status płatności -->
-                    <DataGridTemplateColumn Header="Płatność" Width="120">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Border x:Name="StatusBadge" CornerRadius="12" Padding="12,6" 
-                                       HorizontalAlignment="Center" VerticalAlignment="Center">
-                                    <TextBlock x:Name="StatusText" Foreground="White" FontSize="11" FontWeight="Bold"/>
-                                </Border>
-                                <DataTemplate.Triggers>
-                                    <DataTrigger Binding="{Binding CzyOplacona}" Value="True">
-                                        <Setter TargetName="StatusBadge" Property="Background" Value="#27AE60"/>
-                                        <Setter TargetName="StatusText" Property="Text" Value="OPŁACONO"/>
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding CzyOplacona}" Value="False">
-                                        <Setter TargetName="StatusBadge" Property="Background" Value="#E67E22"/>
-                                        <Setter TargetName="StatusText" Property="Text" Value="DO ZAPŁATY"/>
-                                    </DataTrigger>
-                                </DataTemplate.Triggers>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
+                        <!-- Kort i obiekt -->
+                        <DataGridTemplateColumn Header="Kort / Obiekt" Width="200">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel VerticalAlignment="Center" Margin="10,0">
+                                        <TextBlock Text="{Binding Kort.Nazwa, FallbackValue='Brak danych'}" 
+                                                  FontWeight="SemiBold" Foreground="#2C3E50" FontSize="13"/>
+                                        <TextBlock Text="{Binding Kort.ObiektSportowy.Nazwa, FallbackValue=''}" 
+                                                  Foreground="#7F8C8D" FontSize="11" TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
 
-                    <!-- Status rezerwacji -->
-                    <DataGridTemplateColumn Header="Status" Width="120">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Border x:Name="RezBadge" CornerRadius="12" Padding="10,6" 
-                                       HorizontalAlignment="Center" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding StatusRezerwacji.Nazwa, FallbackValue='?'}" 
-                                              Foreground="White" FontSize="10" FontWeight="Bold"/>
-                                </Border>
-                                <DataTemplate.Triggers>
-                                    <DataTrigger Binding="{Binding StatusRezerwacjiId}" Value="1">
-                                        <Setter TargetName="RezBadge" Property="Background" Value="#F39C12"/>
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding StatusRezerwacjiId}" Value="2">
-                                        <Setter TargetName="RezBadge" Property="Background" Value="#3498DB"/>
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding StatusRezerwacjiId}" Value="3">
-                                        <Setter TargetName="RezBadge" Property="Background" Value="#95A5A6"/>
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding StatusRezerwacjiId}" Value="4">
-                                        <Setter TargetName="RezBadge" Property="Background" Value="#27AE60"/>
-                                    </DataTrigger>
-                                </DataTemplate.Triggers>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                </DataGrid.Columns>
-            </DataGrid>
-        </Border>
-    </Grid>
+                        <!-- Klient: imię, nazwisko, email -->
+                        <DataGridTemplateColumn Header="Klient" Width="*">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel VerticalAlignment="Center" Margin="10,0">
+                                        <TextBlock Text="{Binding Uzytkownik.PelneImieNazwisko, FallbackValue='Nieznany klient'}" 
+                                                  FontWeight="SemiBold" Foreground="#2C3E50" FontSize="13"/>
+                                        <TextBlock Text="{Binding Uzytkownik.Email, FallbackValue=''}" 
+                                                  Foreground="#7F8C8D" FontSize="11" TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <!-- Kwota -->
+                        <DataGridTemplateColumn Header="Kwota" Width="100">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding KosztCalkowity, StringFormat={}{0:N2} zł}" 
+                                              VerticalAlignment="Center" Margin="10,0"
+                                              FontWeight="Bold" Foreground="#2C3E50" FontSize="13"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <!-- Status płatności -->
+                        <DataGridTemplateColumn Header="Płatność" Width="120">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border x:Name="StatusBadge" CornerRadius="12" Padding="12,6" 
+                                           HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock x:Name="StatusText" Foreground="White" FontSize="11" FontWeight="Bold"/>
+                                    </Border>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding CzyOplacona}" Value="True">
+                                            <Setter TargetName="StatusBadge" Property="Background" Value="#27AE60"/>
+                                            <Setter TargetName="StatusText" Property="Text" Value="OPŁACONO"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding CzyOplacona}" Value="False">
+                                            <Setter TargetName="StatusBadge" Property="Background" Value="#E67E22"/>
+                                            <Setter TargetName="StatusText" Property="Text" Value="DO ZAPŁATY"/>
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <!-- Status rezerwacji -->
+                        <DataGridTemplateColumn Header="Status" Width="120">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border x:Name="RezBadge" CornerRadius="12" Padding="10,6" 
+                                           HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding StatusRezerwacji.Nazwa, FallbackValue='?'}" 
+                                                  Foreground="White" FontSize="10" FontWeight="Bold"/>
+                                    </Border>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding StatusRezerwacjiId}" Value="1">
+                                            <Setter TargetName="RezBadge" Property="Background" Value="#F39C12"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding StatusRezerwacjiId}" Value="2">
+                                            <Setter TargetName="RezBadge" Property="Background" Value="#3498DB"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding StatusRezerwacjiId}" Value="3">
+                                            <Setter TargetName="RezBadge" Property="Background" Value="#95A5A6"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding StatusRezerwacjiId}" Value="4">
+                                            <Setter TargetName="RezBadge" Property="Background" Value="#27AE60"/>
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+        </Grid>
+    </ScrollViewer>
 </UserControl>
