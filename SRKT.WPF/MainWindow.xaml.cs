@@ -1,10 +1,9 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using SRKT.Business.Services;
+﻿using SRKT.Business.Services;
 using SRKT.Core.Models;
 using SRKT.DataAccess.Repositories;
+using SRKT.WPF.Services;
 using SRKT.WPF.ViewModels;
 using SRKT.WPF.Views;
-using System;
 using System.Windows;
 
 namespace SRKT.WPF
@@ -13,34 +12,65 @@ namespace SRKT.WPF
     {
         private readonly MainViewModel _viewModel;
 
-        // AKTUALIZACJA: Dodano parametr 'uzytkownikRepo'
-        public MainWindow(IKortRepository kortRepo, IRezerwacjaService rezerwacjaService, IRepository<Uzytkownik> uzytkownikRepo)
+        public MainWindow(
+            IKortRepository kortRepo,
+            IRezerwacjaService rezerwacjaService,
+            IRepository<Uzytkownik> uzytkownikRepo,
+            IPowiadomienieService powiadomienieService = null)
         {
             InitializeComponent();
 
-            // Przekazujemy wszystkie 3 parametry do MainViewModel
-            _viewModel = new MainViewModel(kortRepo, rezerwacjaService, uzytkownikRepo);
+            _viewModel = new MainViewModel(kortRepo, rezerwacjaService, uzytkownikRepo, powiadomienieService);
             _viewModel.LogoutRequested += OnLogoutRequested;
 
             DataContext = _viewModel;
+
+            // Inicjalizuj ToastManager z kontenerem
+            ToastManager.Instance.Initialize(ToastContainer);
+
+            // Ustaw domyślny widok
+            Loaded += MainWindow_Loaded;
+        }
+
+        // Konstruktor zachowany dla kompatybilności wstecznej
+        public MainWindow(
+            IKortRepository kortRepo,
+            IRezerwacjaService rezerwacjaService,
+            IRepository<Uzytkownik> uzytkownikRepo)
+            : this(kortRepo, rezerwacjaService, uzytkownikRepo, null)
+        {
+        }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            // Pokaż domyślny widok (Dostępne Korty)
+            _viewModel.PokazDostepneKortyCommand.Execute(null);
         }
 
         public void SetUzytkownik(Uzytkownik uzytkownik)
         {
             _viewModel.AktualnyUzytkownik = uzytkownik;
-
-            // Opcjonalnie: odśwież widok po zalogowaniu
-            if (_viewModel.PokazDostepneKortyCommand.CanExecute(null))
-            {
-                _viewModel.PokazDostepneKortyCommand.Execute(null);
-            }
         }
 
         private void OnLogoutRequested(object sender, EventArgs e)
         {
-            var loginWindow = ((App)Application.Current).ServiceProvider.GetRequiredService<LoginWindow>();
-            loginWindow.Show();
+            // Wyczyść Toasty
+            ToastManager.Instance.ClearAll();
+
+            // Otwórz okno logowania
+            var app = (App)Application.Current;
+            var loginWindow = app.ServiceProvider.GetService(typeof(LoginWindow)) as Window;
+            loginWindow?.Show();
+
             this.Close();
+        }
+
+        /// <summary>
+        /// Wyświetla Toast notification bezpośrednio z okna
+        /// </summary>
+        public void ShowToast(string tytul, string tresc)
+        {
+            ToastManager.Instance.ShowInfo(tytul, tresc);
         }
     }
 }

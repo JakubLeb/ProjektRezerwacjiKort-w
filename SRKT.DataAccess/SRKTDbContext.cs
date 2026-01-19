@@ -24,6 +24,7 @@ namespace SRKT.DataAccess
         public DbSet<TypPowiadomienia> TypyPowiadomien { get; set; }
         public DbSet<StatusPowiadomienia> StatusyPowiadomien { get; set; }
         public DbSet<GodzinyOtwarcia> GodzinyOtwarcia { get; set; }
+        public DbSet<Przypomnienie> Przypomnienia { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -44,6 +45,7 @@ namespace SRKT.DataAccess
             modelBuilder.Entity<TypPowiadomienia>().ToTable("TYP_POWIADOMIENIA");
             modelBuilder.Entity<StatusPowiadomienia>().ToTable("STATUS_POWIADOMIENIA");
             modelBuilder.Entity<GodzinyOtwarcia>().ToTable("GODZINY_OTWARCIA");
+            modelBuilder.Entity<Przypomnienie>().ToTable("PRZYPOMNIENIE");
 
             // Relacje
             modelBuilder.Entity<Uzytkownik>()
@@ -101,6 +103,16 @@ namespace SRKT.DataAccess
                 .WithMany(r => r.Powiadomienia)
                 .HasForeignKey(p => p.RezerwacjaId)
                 .IsRequired(false);
+            modelBuilder.Entity<Przypomnienie>()
+                .HasOne(p => p.Rezerwacja)
+                .WithMany()
+                .HasForeignKey(p => p.RezerwacjaId);
+
+            modelBuilder.Entity<Przypomnienie>()
+                .HasOne(p => p.Uzytkownik)
+                .WithMany()
+                .HasForeignKey(p => p.UzytkownikId);
+
         }
     }
 }

@@ -1,0 +1,351 @@
+﻿<UserControl x:Class="SRKT.WPF.Views.PowiadomieniaView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="800"
+             Background="#F5F6FA">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </UserControl.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Nagłówek -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="🔔 " FontSize="28"/>
+                <TextBlock Text="Moje Powiadomienia" 
+                          FontSize="28" 
+                          FontWeight="ExtraBold" 
+                          Foreground="#2C3E50"/>
+            </StackPanel>
+            <TextBlock Text="Zarządzaj swoimi powiadomieniami i ustawieniami" 
+                      FontSize="14" 
+                      Foreground="#7F8C8D" 
+                      Margin="0,5,0,0"/>
+        </StackPanel>
+
+        <!-- Pasek akcji -->
+        <Border Grid.Row="1" 
+               Background="White" 
+               CornerRadius="10" 
+               Padding="15" 
+               Margin="0,0,0,15"
+               BorderBrush="#DCDDE1" 
+               BorderThickness="1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Licznik nieprzeczytanych -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Background="#E74C3C" 
+                           CornerRadius="12" 
+                           Padding="12,6" 
+                           Margin="0,0,10,0"
+                           Visibility="{Binding MaNieprzeczytane, Converter={StaticResource BoolToVis}}">
+                        <TextBlock Text="{Binding LiczbaNieprzeczytanych, StringFormat='{}{0} nowych'}" 
+                                  Foreground="White" 
+                                  FontWeight="Bold" 
+                                  FontSize="12"/>
+                    </Border>
+                    <TextBlock Text="{Binding Powiadomienia.Count, StringFormat='Wszystkich: {0}'}" 
+                              Foreground="#7F8C8D" 
+                              VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Filtr -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
+                    <RadioButton Content="Wszystkie" 
+                                IsChecked="{Binding FiltrWszystkie}" 
+                                GroupName="Filtr"
+                                Margin="0,0,15,0"
+                                Style="{StaticResource {x:Type RadioButton}}"/>
+                    <RadioButton Content="Nieprzeczytane" 
+                                IsChecked="{Binding FiltrNieprzeczytane}" 
+                                GroupName="Filtr"
+                                Margin="0,0,15,0"/>
+                    <RadioButton Content="Email" 
+                                IsChecked="{Binding FiltrEmail}" 
+                                GroupName="Filtr"
+                                Margin="0,0,15,0"/>
+                    <RadioButton Content="Systemowe" 
+                                IsChecked="{Binding FiltrSystemowe}" 
+                                GroupName="Filtr"/>
+                </StackPanel>
+
+                <!-- Przyciski akcji -->
+                <Button Grid.Column="2" 
+                       Content="✓ Oznacz jako przeczytane" 
+                       Command="{Binding OznaczWszystkieCommand}"
+                       Background="#27AE60" 
+                       Foreground="White" 
+                       FontWeight="Bold"
+                       Height="35" 
+                       Padding="15,0"
+                       Margin="0,0,10,0"
+                       Cursor="Hand"/>
+
+                <Button Grid.Column="3" 
+                       Content="🔄 Odśwież" 
+                       Command="{Binding OdswiezCommand}"
+                       Background="#3498DB" 
+                       Foreground="White" 
+                       FontWeight="Bold"
+                       Height="35" 
+                       Padding="15,0"
+                       Cursor="Hand"/>
+            </Grid>
+        </Border>
+
+        <!-- Lista powiadomień -->
+        <Border Grid.Row="2" 
+               Background="White" 
+               CornerRadius="10" 
+               BorderBrush="#DCDDE1" 
+               BorderThickness="1">
+            <Grid>
+                <!-- Lista -->
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="10">
+                    <ItemsControl ItemsSource="{Binding PowiadomieniaFiltrowane}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border x:Name="ItemBorder"
+                                       Margin="0,0,0,10" 
+                                       CornerRadius="8" 
+                                       BorderBrush="#EEEEEE" 
+                                       BorderThickness="1"
+                                       Padding="15"
+                                       Cursor="Hand"
+                                       MouseLeftButtonUp="Powiadomienie_Click">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Background" Value="White"/>
+                                            <Style.Triggers>
+                                                <!-- Nieprzeczytane mają inne tło -->
+                                                <DataTrigger Binding="{Binding StatusPowiadomieniaId}" Value="1">
+                                                    <Setter Property="Background" Value="#EBF5FB"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding StatusPowiadomieniaId}" Value="2">
+                                                    <Setter Property="Background" Value="#EBF5FB"/>
+                                                </DataTrigger>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background" Value="#F8F9FA"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Ikona typu -->
+                                        <Border Grid.Column="0" 
+                                               Width="45" Height="45" 
+                                               CornerRadius="22" 
+                                               Margin="0,0,15,0"
+                                               VerticalAlignment="Center">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Background" Value="#3498DB"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding TypPowiadomieniaId}" Value="1">
+                                                            <Setter Property="Background" Value="#9B59B6"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding TypPowiadomieniaId}" Value="2">
+                                                            <Setter Property="Background" Value="#3498DB"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding TypPowiadomieniaId}" Value="3">
+                                                            <Setter Property="Background" Value="#F39C12"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <TextBlock x:Name="IkonaText" 
+                                                      FontSize="20" 
+                                                      HorizontalAlignment="Center" 
+                                                      VerticalAlignment="Center">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Text" Value="🔔"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding TypPowiadomieniaId}" Value="1">
+                                                                <Setter Property="Text" Value="✉️"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding TypPowiadomieniaId}" Value="2">
+                                                                <Setter Property="Text" Value="📋"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding TypPowiadomieniaId}" Value="3">
+                                                                <Setter Property="Text" Value="🔔"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Border>
+
+                                        <!-- Treść -->
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Tytul}" 
+                                                      FontWeight="Bold" 
+                                                      FontSize="14" 
+                                                      Foreground="#2C3E50"
+                                                      TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding Tresc}" 
+                                                      FontSize="12" 
+                                                      Foreground="#7F8C8D"
+                                                      TextTrimming="CharacterEllipsis"
+                                                      MaxWidth="400"
+                                                      Margin="0,4,0,0"/>
+                                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                                <TextBlock Text="{Binding DataUtworzenia, StringFormat='dd.MM.yyyy HH:mm'}" 
+                                                          FontSize="11" 
+                                                          Foreground="#95A5A6"/>
+                                                <!-- Badge typu -->
+                                                <Border Margin="10,0,0,0" 
+                                                       CornerRadius="8" 
+                                                       Padding="8,2">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="Background" Value="#ECF0F1"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding TypPowiadomieniaId}" Value="1">
+                                                                    <Setter Property="Background" Value="#F5EEF8"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding TypPowiadomieniaId}" Value="2">
+                                                                    <Setter Property="Background" Value="#EBF5FB"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding TypPowiadomieniaId}" Value="3">
+                                                                    <Setter Property="Background" Value="#FEF9E7"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Border.Style>
+                                                    <TextBlock FontSize="10" FontWeight="SemiBold">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Setter Property="Text" Value="Inne"/>
+                                                                <Setter Property="Foreground" Value="#7F8C8D"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding TypPowiadomieniaId}" Value="1">
+                                                                        <Setter Property="Text" Value="Email"/>
+                                                                        <Setter Property="Foreground" Value="#9B59B6"/>
+                                                                    </DataTrigger>
+                                                                    <DataTrigger Binding="{Binding TypPowiadomieniaId}" Value="2">
+                                                                        <Setter Property="Text" Value="Systemowe"/>
+                                                                        <Setter Property="Foreground" Value="#3498DB"/>
+                                                                    </DataTrigger>
+                                                                    <DataTrigger Binding="{Binding TypPowiadomieniaId}" Value="3">
+                                                                        <Setter Property="Text" Value="Push"/>
+                                                                        <Setter Property="Foreground" Value="#F39C12"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                </Border>
+                                            </StackPanel>
+                                        </StackPanel>
+
+                                        <!-- Wskaźnik nieprzeczytane -->
+                                        <Ellipse Grid.Column="2" 
+                                                Width="10" Height="10" 
+                                                Fill="#E74C3C"
+                                                VerticalAlignment="Center"
+                                                Margin="10,0">
+                                            <Ellipse.Style>
+                                                <Style TargetType="Ellipse">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding StatusPowiadomieniaId}" Value="1">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding StatusPowiadomieniaId}" Value="2">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Ellipse.Style>
+                                        </Ellipse>
+
+                                        <!-- Przycisk usuń -->
+                                        <Button Grid.Column="3" 
+                                               Content="🗑️" 
+                                               Command="{Binding DataContext.UsunPowiadomienieCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                               CommandParameter="{Binding}"
+                                               Background="Transparent"
+                                               BorderThickness="0"
+                                               FontSize="14"
+                                               Width="35" Height="35"
+                                               Cursor="Hand"
+                                               VerticalAlignment="Center"
+                                               ToolTip="Usuń powiadomienie">
+                                            <Button.Style>
+                                                <Style TargetType="Button">
+                                                    <Setter Property="Opacity" Value="0.5"/>
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border Background="{TemplateBinding Background}" 
+                                                                       CornerRadius="17">
+                                                                    <ContentPresenter HorizontalAlignment="Center" 
+                                                                                    VerticalAlignment="Center"/>
+                                                                </Border>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                    <Style.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter Property="Opacity" Value="1"/>
+                                                            <Setter Property="Background" Value="#FADBD8"/>
+                                                        </Trigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <!-- Komunikat gdy brak powiadomień -->
+                <StackPanel VerticalAlignment="Center" 
+                           HorizontalAlignment="Center"
+                           Visibility="{Binding BrakPowiadomien, Converter={StaticResource BoolToVis}}">
+                    <TextBlock Text="📭" 
+                              FontSize="48" 
+                              HorizontalAlignment="Center" 
+                              Margin="0,0,0,10"/>
+                    <TextBlock Text="Brak powiadomień" 
+                              FontSize="18" 
+                              Foreground="#95A5A6" 
+                              HorizontalAlignment="Center"/>
+                    <TextBlock Text="Wszystkie powiadomienia pojawią się tutaj" 
+                              FontSize="13" 
+                              Foreground="#BDC3C7" 
+                              HorizontalAlignment="Center"
+                              Margin="0,5,0,0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

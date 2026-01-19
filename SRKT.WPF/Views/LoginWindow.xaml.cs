@@ -43,6 +43,7 @@ namespace SRKT.WPF.Views
             var rezerwacjaRepo = _serviceProvider.GetRequiredService<IRezerwacjaRepository>();
             var obiektRepo = _serviceProvider.GetRequiredService<IRepository<ObiektSportowy>>();
             var rolaRepo = _serviceProvider.GetRequiredService<IRepository<Rola>>();
+            var powiadomienieService = _serviceProvider.GetRequiredService<IPowiadomienieService>();
 
             if (uzytkownik.RolaId == 1) // ADMIN
             {
@@ -67,7 +68,7 @@ namespace SRKT.WPF.Views
             }
             else // ZWYKŁY UŻYTKOWNIK
             {
-                var mainWindow = new MainWindow(kortRepo, rezerwacjaService, uzytkownikRepo);
+                var mainWindow = new MainWindow(kortRepo, rezerwacjaService, uzytkownikRepo, powiadomienieService);
                 mainWindow.SetUzytkownik(uzytkownik);
                 mainWindow.Show();
             }

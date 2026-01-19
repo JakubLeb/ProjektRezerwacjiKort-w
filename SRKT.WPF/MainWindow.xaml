@@ -19,6 +19,10 @@
         <DataTemplate DataType="{x:Type viewModels:MojeRezerwacjeViewModel}">
             <views:MojeRezerwacjeView/>
         </DataTemplate>
+
+        <DataTemplate DataType="{x:Type viewModels:PowiadomieniaViewModel}">
+            <views:PowiadomieniaView/>
+        </DataTemplate>
     </Window.Resources>
 
     <Grid>
@@ -51,6 +55,38 @@
                        Style="{StaticResource MenuButtonStyle}"
                        Margin="0,5"/>
 
+                <!-- Przycisk Powiadomienia z badge -->
+                <Button Command="{Binding PokazPowiadomieniaCommand}"
+                       Style="{StaticResource MenuButtonStyle}"
+                       Margin="0,5">
+                    <Grid Width="150">
+                        <TextBlock Text="🔔 Powiadomienia" 
+                                  HorizontalAlignment="Left"
+                                  VerticalAlignment="Center"/>
+                        <!-- Badge z liczbą nieprzeczytanych -->
+                        <Border Background="#E74C3C" 
+                               CornerRadius="10" 
+                               Padding="6,2" 
+                               HorizontalAlignment="Right"
+                               VerticalAlignment="Center"
+                               Visibility="{Binding WidocznoscBadgePowiadomien}">
+                            <TextBlock Text="{Binding LiczbaNieprzeczytanych}" 
+                                      Foreground="White" 
+                                      FontSize="11" 
+                                      FontWeight="Bold"/>
+                        </Border>
+                    </Grid>
+                </Button>
+                <Button Command="{Binding PokazPrzypomnieniCommand}"
+       Style="{StaticResource MenuButtonStyle}"
+       Margin="0,5">
+                    <Grid Width="170">
+                        <TextBlock Text="⏰ Przypomnienia" 
+                  HorizontalAlignment="Left"
+                  VerticalAlignment="Center"/>
+                    </Grid>
+                </Button>
+
                 <Button Content="Wyloguj" 
                        Command="{Binding WylogujCommand}"
                        Style="{StaticResource MenuButtonStyle}"
@@ -81,8 +117,17 @@
         </Border>
 
         <!-- Obszar główny -->
-        <ContentControl Grid.Column="1" 
-                       Content="{Binding AktualnyWidok}"
-                       Margin="10"/>
+        <Grid Grid.Column="1">
+            <!-- Główna zawartość -->
+            <ContentControl Content="{Binding AktualnyWidok}"
+                           Margin="10"/>
+
+            <!-- Kontener dla Toast Notifications (na wierzchu) -->
+            <Grid x:Name="ToastContainer" 
+                 HorizontalAlignment="Right" 
+                 VerticalAlignment="Top"
+                 Margin="0,10,10,0"
+                 IsHitTestVisible="True"/>
+        </Grid>
     </Grid>
 </Window>
