@@ -1,5 +1,6 @@
 ﻿using SRKT.Business.Services;
 using SRKT.Core.Models;
+using SRKT.WPF.Views;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
@@ -22,7 +23,7 @@ namespace SRKT.WPF.ViewModels
         private bool _filtrWyslane;
 
         public PrzypomnieniViewModel(
-            IPrzypomnienieService przypomnienieService, 
+            IPrzypomnienieService przypomnienieService,
             IRezerwacjaService rezerwacjaService,
             Uzytkownik uzytkownik)
         {
@@ -148,8 +149,8 @@ namespace SRKT.WPF.ViewModels
         {
             // Pobierz rezerwacje użytkownika do wyboru
             var rezerwacje = await _rezerwacjaService.GetRezerwacjeUzytkownikaAsync(_uzytkownik.Id);
-            var przyszleRezerwacje = rezerwacje.Where(r => 
-                r.DataRezerwacji > DateTime.Now && 
+            var przyszleRezerwacje = rezerwacje.Where(r =>
+                r.DataRezerwacji > DateTime.Now &&
                 r.StatusRezerwacjiId != 3).ToList();
 
             if (!przyszleRezerwacje.Any())
