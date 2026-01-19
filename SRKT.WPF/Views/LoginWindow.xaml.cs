@@ -42,6 +42,7 @@ namespace SRKT.WPF.Views
             var uzytkownikRepo = _serviceProvider.GetRequiredService<IRepository<Uzytkownik>>();
             var rezerwacjaRepo = _serviceProvider.GetRequiredService<IRezerwacjaRepository>();
             var obiektRepo = _serviceProvider.GetRequiredService<IRepository<ObiektSportowy>>();
+            var rolaRepo = _serviceProvider.GetRequiredService<IRepository<Rola>>();
 
             if (uzytkownik.RolaId == 1) // ADMIN
             {
@@ -50,7 +51,8 @@ namespace SRKT.WPF.Views
                     kortRepo,
                     uzytkownikRepo,
                     rezerwacjaRepo,
-                    obiektRepo);
+                    obiektRepo,
+                    rolaRepo);
                 adminVM.AktualnyAdministrator = uzytkownik;
 
                 var adminWindow = new AdminWindow();

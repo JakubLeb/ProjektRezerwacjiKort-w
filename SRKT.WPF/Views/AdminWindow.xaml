@@ -93,39 +93,6 @@
                     </Button.Style>
                 </Button>
 
-                <Button Content="🎾 Korty" 
-                       Command="{Binding PokazKortyCommand}" 
-                        Height="45" 
-                        Margin="0,5" 
-                        Background="#34495E" 
-                        Foreground="White" 
-                        BorderThickness="0"
-                        FontSize="14"
-                        HorizontalContentAlignment="Left"
-                        Padding="15,0"
-                        Cursor="Hand">
-                    <Button.Style>
-                        <Style TargetType="Button">
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="Button">
-                                        <Border Background="{TemplateBinding Background}" 
-                                               CornerRadius="5" 
-                                               Padding="{TemplateBinding Padding}">
-                                            <ContentPresenter VerticalAlignment="Center"/>
-                                        </Border>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                            <Style.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Background" Value="#3498DB"/>
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Button.Style>
-                </Button>
-
                 <Button Content="👥 Użytkownicy" 
                        Command="{Binding PokazUzytkownikowCommand}" 
                         Height="45" 

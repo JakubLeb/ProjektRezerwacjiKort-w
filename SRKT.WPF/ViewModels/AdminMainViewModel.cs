@@ -16,6 +16,7 @@ namespace SRKT.WPF.ViewModels
         private readonly IRepository<Uzytkownik> _uzytkownikRepo;
         private readonly IRezerwacjaRepository _rezerwacjaRepo;
         private readonly IRepository<ObiektSportowy> _obiektRepo;
+        private readonly IRepository<Rola> _rolaRepo;
 
         private object _aktualnyWidok;
         private Uzytkownik _aktualnyAdministrator;
@@ -25,18 +26,18 @@ namespace SRKT.WPF.ViewModels
             IKortRepository kortRepo,
             IRepository<Uzytkownik> uzytkownikRepo,
             IRezerwacjaRepository rezerwacjaRepo,
-            IRepository<ObiektSportowy> obiektRepo)
+            IRepository<ObiektSportowy> obiektRepo,
+            IRepository<Rola> rolaRepo = null)
         {
             _rezerwacjaService = rezerwacjaService;
             _kortRepo = kortRepo;
             _uzytkownikRepo = uzytkownikRepo;
             _rezerwacjaRepo = rezerwacjaRepo;
             _obiektRepo = obiektRepo;
+            _rolaRepo = rolaRepo;
 
             PokazDashboardCommand = new RelayCommand(_ => PokazDashboard());
             PokazKalendarzCommand = new RelayCommand(_ => PokazKalendarz());
-            PokazKortyCommand = new RelayCommand(_ => PokazKorty());
-            PokazRezerwacjeCommand = new RelayCommand(_ => PokazWszystkieRezerwacje());
             PokazUzytkownikowCommand = new RelayCommand(_ => PokazUzytkownikow());
             WylogujCommand = new RelayCommand(_ => Wyloguj());
 
@@ -57,8 +58,6 @@ namespace SRKT.WPF.ViewModels
 
         public ICommand PokazDashboardCommand { get; }
         public ICommand PokazKalendarzCommand { get; }
-        public ICommand PokazKortyCommand { get; }
-        public ICommand PokazRezerwacjeCommand { get; }
         public ICommand PokazUzytkownikowCommand { get; }
         public ICommand WylogujCommand { get; }
 
@@ -76,34 +75,32 @@ namespace SRKT.WPF.ViewModels
             AktualnyWidok = view;
         }
 
-        private void PokazKorty()
-        {
-            AktualnyWidok = new TextBlock
-            {
-                Text = "Zarządzanie Kortami - w budowie",
-                FontSize = 20,
-                Margin = new Thickness(20)
-            };
-        }
-
-        private void PokazWszystkieRezerwacje()
-        {
-            AktualnyWidok = new TextBlock
-            {
-                Text = "Zarządzanie Rezerwacjami - w budowie",
-                FontSize = 20,
-                Margin = new Thickness(20)
-            };
-        }
-
         private void PokazUzytkownikow()
         {
-            AktualnyWidok = new TextBlock
+            if (_rolaRepo != null)
             {
-                Text = "Zarządzanie Użytkownikami - w budowie",
-                FontSize = 20,
-                Margin = new Thickness(20)
-            };
+                var viewModel = new AdminUzytkownicyViewModel(_uzytkownikRepo, _rolaRepo);
+                var view = new AdminUzytkownicyView { DataContext = viewModel };
+                AktualnyWidok = view;
+            }
+            else
+            {
+                // Fallback - pobierz rolaRepo z DI jeśli nie został przekazany
+                var rolaRepo = ((App)Application.Current).ServiceProvider
+                    .GetService(typeof(IRepository<Rola>)) as IRepository<Rola>;
+
+                if (rolaRepo != null)
+                {
+                    var viewModel = new AdminUzytkownicyViewModel(_uzytkownikRepo, rolaRepo);
+                    var view = new AdminUzytkownicyView { DataContext = viewModel };
+                    AktualnyWidok = view;
+                }
+                else
+                {
+                    MessageBox.Show("Nie można załadować modułu użytkowników - brak serwisu ról.",
+                        "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
         }
 
         private void Wyloguj()

@@ -72,6 +72,12 @@
     </Resource>
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="ViewModels\AdminUzytkownicyViewModel.cs">
+      <Generator>MSBuild:Compile</Generator>
+    </Compile>
+  </ItemGroup>
+
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
