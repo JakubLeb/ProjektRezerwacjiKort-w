@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             mc:Ignorable="d" d:DesignHeight="800" d:DesignWidth="1000"
+             mc:Ignorable="d" d:DesignHeight="800" d:DesignWidth="1100"
              Background="#F5F6FA">
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -267,7 +267,7 @@
                         </DataGridTemplateColumn>
 
                         <!-- Kort i obiekt -->
-                        <DataGridTemplateColumn Header="Kort / Obiekt" Width="200">
+                        <DataGridTemplateColumn Header="Kort / Obiekt" Width="180">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <StackPanel VerticalAlignment="Center" Margin="10,0">
@@ -295,7 +295,7 @@
                         </DataGridTemplateColumn>
 
                         <!-- Kwota -->
-                        <DataGridTemplateColumn Header="Kwota" Width="100">
+                        <DataGridTemplateColumn Header="Kwota" Width="90">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding KosztCalkowity, StringFormat={}{0:N2} zł}" 
@@ -306,7 +306,7 @@
                         </DataGridTemplateColumn>
 
                         <!-- Uwagi klienta -->
-                        <DataGridTemplateColumn Header="Uwagi" Width="150">
+                        <DataGridTemplateColumn Header="Uwagi" Width="120">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Border Background="#FFF8E1" 
@@ -331,7 +331,7 @@
                                         <TextBlock Text="{Binding Uwagi}" 
                                                   FontSize="11" 
                                                   Foreground="#795548"
-                                                  MaxWidth="120"
+                                                  MaxWidth="100"
                                                   TextTrimming="CharacterEllipsis"
                                                   ToolTip="{Binding Uwagi}"/>
                                     </Border>
@@ -339,22 +339,66 @@
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
 
-                        <!-- Status płatności -->
-                        <DataGridTemplateColumn Header="Płatność" Width="120">
+                        <!-- Status płatności z przyciskiem "Przyjmij płatność" -->
+                        <DataGridTemplateColumn Header="Płatność" Width="140">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Border x:Name="StatusBadge" CornerRadius="12" Padding="12,6" 
-                                           HorizontalAlignment="Center" VerticalAlignment="Center">
-                                        <TextBlock x:Name="StatusText" Foreground="White" FontSize="11" FontWeight="Bold"/>
-                                    </Border>
+                                    <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
+                                        <!-- Badge "OPŁACONO" - widoczny gdy opłacone -->
+                                        <Border x:Name="OplaconoBadge" 
+                                               CornerRadius="12" 
+                                               Padding="12,6" 
+                                               Background="#27AE60"
+                                               Visibility="Collapsed">
+                                            <TextBlock Text="OPŁACONO" 
+                                                      Foreground="White" 
+                                                      FontSize="11" 
+                                                      FontWeight="Bold"/>
+                                        </Border>
+
+                                        <!-- Przycisk "Przyjmij płatność" - widoczny gdy NIE opłacone -->
+                                        <Button x:Name="PrzyjmijPlatnoscBtn"
+                                               Content="💵 Przyjmij" 
+                                               Command="{Binding DataContext.OznaczJakoOplaconeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                               CommandParameter="{Binding}"
+                                               Background="#E67E22" 
+                                               Foreground="White" 
+                                               FontWeight="Bold"
+                                               Height="30" 
+                                               Padding="10,0"
+                                               Cursor="Hand"
+                                               ToolTip="Przyjmij płatność gotówką"
+                                               Visibility="Visible">
+                                            <Button.Style>
+                                                <Style TargetType="Button">
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="Button">
+                                                                <Border Background="{TemplateBinding Background}" 
+                                                                       CornerRadius="5" 
+                                                                       Padding="{TemplateBinding Padding}">
+                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                                </Border>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                    <Style.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter Property="Background" Value="#D35400"/>
+                                                        </Trigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                    </Grid>
                                     <DataTemplate.Triggers>
                                         <DataTrigger Binding="{Binding CzyOplacona}" Value="True">
-                                            <Setter TargetName="StatusBadge" Property="Background" Value="#27AE60"/>
-                                            <Setter TargetName="StatusText" Property="Text" Value="OPŁACONO"/>
+                                            <Setter TargetName="OplaconoBadge" Property="Visibility" Value="Visible"/>
+                                            <Setter TargetName="PrzyjmijPlatnoscBtn" Property="Visibility" Value="Collapsed"/>
                                         </DataTrigger>
                                         <DataTrigger Binding="{Binding CzyOplacona}" Value="False">
-                                            <Setter TargetName="StatusBadge" Property="Background" Value="#E67E22"/>
-                                            <Setter TargetName="StatusText" Property="Text" Value="DO ZAPŁATY"/>
+                                            <Setter TargetName="OplaconoBadge" Property="Visibility" Value="Collapsed"/>
+                                            <Setter TargetName="PrzyjmijPlatnoscBtn" Property="Visibility" Value="Visible"/>
                                         </DataTrigger>
                                     </DataTemplate.Triggers>
                                 </DataTemplate>
@@ -362,7 +406,7 @@
                         </DataGridTemplateColumn>
 
                         <!-- Status rezerwacji -->
-                        <DataGridTemplateColumn Header="Status" Width="120">
+                        <DataGridTemplateColumn Header="Status" Width="110">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Border x:Name="RezBadge" CornerRadius="12" Padding="10,6" 

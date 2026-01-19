@@ -29,6 +29,7 @@ namespace SRKT.WPF.Views
         // Komendy
         public ICommand ZatwierdzRezerwacjeCommand { get; }
         public ICommand OdrzucRezerwacjeCommand { get; }
+        public ICommand OznaczJakoOplaconeCommand { get; }
 
         public AdminDashboardView(IRezerwacjaService service)
         {
@@ -41,6 +42,9 @@ namespace SRKT.WPF.Views
             // Komendy do zatwierdzania/odrzucania rezerwacji
             ZatwierdzRezerwacjeCommand = new ViewModels.RelayCommand(async param => await ZatwierdzRezerwacjeAsync(param as Rezerwacja));
             OdrzucRezerwacjeCommand = new ViewModels.RelayCommand(async param => await OdrzucRezerwacjeAsync(param as Rezerwacja));
+
+            // NOWA KOMENDA: Oznacz jako opłacone (symulacja płatności gotówką)
+            OznaczJakoOplaconeCommand = new ViewModels.RelayCommand(async param => await OznaczJakoOplaconeAsync(param as Rezerwacja));
 
             DataContext = this;
             ZaladujDane();
@@ -155,6 +159,59 @@ namespace SRKT.WPF.Views
                     else
                     {
                         MessageBox.Show("Nie udało się anulować rezerwacji.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Błąd: {ex.Message}", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Oznacza rezerwację jako opłaconą - symulacja przyjęcia płatności gotówką na miejscu
+        /// </summary>
+        private async Task OznaczJakoOplaconeAsync(Rezerwacja rezerwacja)
+        {
+            if (rezerwacja == null) return;
+
+            // Sprawdź czy już nie jest opłacona
+            if (rezerwacja.CzyOplacona)
+            {
+                MessageBox.Show("Ta rezerwacja jest już opłacona.", "Informacja", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var result = MessageBox.Show(
+                $"Czy potwierdzasz przyjęcie płatności gotówką?\n\n" +
+                $"Klient: {rezerwacja.Uzytkownik?.PelneImieNazwisko ?? "Nieznany"}\n" +
+                $"Kort: {rezerwacja.Kort?.Nazwa ?? "Nieznany"}\n" +
+                $"Godzina: {rezerwacja.DataRezerwacji:HH:mm} - {rezerwacja.DataZakonczenia:HH:mm}\n" +
+                $"Kwota: {rezerwacja.KosztCalkowity:N2} zł",
+                "Potwierdzenie płatności",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                try
+                {
+                    var sukces = await _service.OznaczJakoOplaconeAsync(rezerwacja.Id);
+
+                    if (sukces)
+                    {
+                        MessageBox.Show(
+                            $"Płatność została przyjęta!\n\nKwota: {rezerwacja.KosztCalkowity:N2} zł",
+                            "Sukces",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information);
+
+                        // Odśwież dane
+                        ZaladujDane();
+                    }
+                    else
+                    {
+                        MessageBox.Show("Nie udało się oznaczyć rezerwacji jako opłaconej.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
                 catch (Exception ex)

@@ -106,6 +106,33 @@ namespace SRKT.Business.Services
         }
 
         /// <summary>
+        /// Oznacza rezerwację jako opłaconą (symulacja płatności gotówką na miejscu)
+        /// </summary>
+        public async Task<bool> OznaczJakoOplaconeAsync(int rezerwacjaId)
+        {
+            var rezerwacja = await _rezerwacjaRepo.GetByIdAsync(rezerwacjaId);
+            if (rezerwacja == null)
+                return false;
+
+            // Sprawdź czy już nie jest opłacona
+            if (rezerwacja.CzyOplacona)
+                return true; // Już opłacona - sukces
+
+            rezerwacja.CzyOplacona = true;
+            rezerwacja.DataModyfikacji = DateTime.Now;
+            await _rezerwacjaRepo.UpdateAsync(rezerwacja);
+
+            // Wyślij powiadomienie do klienta
+            await _powiadomienieService.WyslijPowiadomienieDlaRezerwacjiAsync(
+                rezerwacjaId,
+                "Płatność przyjęta",
+                $"Płatność za rezerwację na {rezerwacja.DataRezerwacji:dd.MM.yyyy HH:mm} została przyjęta. Dziękujemy!"
+            );
+
+            return true;
+        }
+
+        /// <summary>
         /// Pobiera wszystkie rezerwacje z danego dnia z pełnymi danymi relacyjnymi
         /// (Kort, ObiektSportowy, Uzytkownik, StatusRezerwacji)
         /// </summary>
@@ -114,7 +141,7 @@ namespace SRKT.Business.Services
             // Używamy nowej metody z repozytorium, która pobiera pełne dane
             var dataOd = data.Date;
             var dataDo = data.Date.AddDays(1).AddTicks(-1);
-            
+
             return await _rezerwacjaRepo.GetRezerwacjeByDataAsync(dataOd, dataDo);
         }
 

@@ -12,6 +12,11 @@ namespace SRKT.Business.Services
         Task<IEnumerable<Rezerwacja>> PobierzWszystkieRezerwacjeZDatyAsync(DateTime data);
 
         Task<IEnumerable<TimeSlot>> GetWolneTerminyAsync(int kortId, DateTime data, decimal dlugoscSesji);
+
+        /// <summary>
+        /// Oznacza rezerwację jako opłaconą (symulacja płatności gotówką na miejscu)
+        /// </summary>
+        Task<bool> OznaczJakoOplaconeAsync(int rezerwacjaId);
     }
 
     public class TimeSlot
