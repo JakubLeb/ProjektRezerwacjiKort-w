@@ -77,13 +77,14 @@
                         </Border>
                     </Grid>
                 </Button>
+
                 <Button Command="{Binding PokazPrzypomnieniCommand}"
-       Style="{StaticResource MenuButtonStyle}"
-       Margin="0,5">
+                       Style="{StaticResource MenuButtonStyle}"
+                       Margin="0,5">
                     <Grid Width="170">
                         <TextBlock Text="⏰ Przypomnienia" 
-                  HorizontalAlignment="Left"
-                  VerticalAlignment="Center"/>
+                                  HorizontalAlignment="Left"
+                                  VerticalAlignment="Center"/>
                     </Grid>
                 </Button>
 
@@ -122,12 +123,13 @@
             <ContentControl Content="{Binding AktualnyWidok}"
                            Margin="10"/>
 
-            <!-- Kontener dla Toast Notifications (na wierzchu) -->
-            <Grid x:Name="ToastContainer" 
-                 HorizontalAlignment="Right" 
-                 VerticalAlignment="Top"
-                 Margin="0,10,10,0"
-                 IsHitTestVisible="True"/>
+            <!-- Kontener dla Toast Notifications (na wierzchu, w prawym górnym rogu) -->
+            <StackPanel x:Name="ToastContainer" 
+                       HorizontalAlignment="Right" 
+                       VerticalAlignment="Top"
+                       Margin="0,20,20,0"
+                       Width="340"
+                       IsHitTestVisible="True"/>
         </Grid>
     </Grid>
 </Window>

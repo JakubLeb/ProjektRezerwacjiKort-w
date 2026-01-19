@@ -2,8 +2,9 @@
 using SRKT.Business.Services;
 using SRKT.Core.Models;
 using SRKT.DataAccess.Repositories;
+using SRKT.WPF.Services;
 using SRKT.WPF.ViewModels;
-using SRKT.WPF.Views;
+using System;
 using System.Windows;
 
 namespace SRKT.WPF
@@ -11,6 +12,7 @@ namespace SRKT.WPF
     public partial class MainWindow : Window
     {
         private readonly MainViewModel _viewModel;
+        private PrzypomnienieBackgroundService _przypomnienieBackgroundService;
 
         public MainWindow(
             IKortRepository kortRepo,
@@ -22,42 +24,82 @@ namespace SRKT.WPF
 
             // Pobierz serwis przypomnień z DI
             var przypomnienieService = ((App)Application.Current).ServiceProvider
-                ?.GetService(typeof(IPrzypomnienieService)) as IPrzypomnienieService;
+                .GetService(typeof(IPrzypomnienieService)) as IPrzypomnienieService;
 
             _viewModel = new MainViewModel(
                 kortRepo,
                 rezerwacjaService,
                 uzytkownikRepo,
-                przypomnienieService,  // Może być null - MainViewModel to obsłuży
+                przypomnienieService,
                 powiadomienieService);
 
             _viewModel.LogoutRequested += OnLogoutRequested;
 
             DataContext = _viewModel;
+
+            // Inicjalizuj ToastManager z kontenerem
+            ToastManager.Instance.Initialize(ToastContainer);
+
+            // Pokaż domyślny widok
+            _viewModel.PokazDostepneKortyCommand.Execute(null);
         }
 
         public void SetUzytkownik(Uzytkownik uzytkownik)
         {
             _viewModel.AktualnyUzytkownik = uzytkownik;
 
-            // Domyślnie pokaż dostępne korty
-            _viewModel.PokazDostepneKortyCommand.Execute(null);
+            // Uruchom serwis sprawdzania przypomnień
+            StartPrzypomnienieService(uzytkownik.Id);
+
+            // Wyświetl toast powitalny
+            ToastManager.Instance.ShowSuccess(
+                "Witaj!",
+                $"Zalogowano jako {uzytkownik.PelneImieNazwisko}");
+        }
+
+        private void StartPrzypomnienieService(int uzytkownikId)
+        {
+            try
+            {
+                var serviceProvider = ((App)Application.Current).ServiceProvider;
+                var przypomnienieService = serviceProvider.GetService(typeof(IPrzypomnienieService)) as IPrzypomnienieService;
+                var powiadomienieService = serviceProvider.GetService(typeof(IPowiadomienieService)) as IPowiadomienieService;
+
+                if (przypomnienieService != null && powiadomienieService != null)
+                {
+                    _przypomnienieBackgroundService = new PrzypomnienieBackgroundService(
+                        przypomnienieService,
+                        powiadomienieService,
+                        uzytkownikId);
+
+                    _przypomnienieBackgroundService.Start();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Błąd uruchamiania serwisu przypomnień: {ex.Message}");
+            }
         }
 
         private void OnLogoutRequested(object sender, EventArgs e)
         {
-            try
-            {
-                var app = (App)Application.Current;
-                var loginWindow = app.ServiceProvider.GetRequiredService<LoginWindow>();
-                loginWindow.Show();
-                this.Close();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Błąd podczas wylogowywania: {ex.Message}",
-                    "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            // Zatrzymaj serwis przypomnień
+            _przypomnienieBackgroundService?.Stop();
+            _przypomnienieBackgroundService?.Dispose();
+
+            var serviceProvider = ((App)Application.Current).ServiceProvider;
+            var loginWindow = serviceProvider.GetRequiredService<Views.LoginWindow>();
+            loginWindow.Show();
+            this.Close();
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            // Zatrzymaj serwis przy zamykaniu okna
+            _przypomnienieBackgroundService?.Stop();
+            _przypomnienieBackgroundService?.Dispose();
+
+            base.OnClosed(e);
         }
     }
 }

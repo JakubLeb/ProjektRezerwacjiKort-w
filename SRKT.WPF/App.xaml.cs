@@ -49,6 +49,8 @@ namespace SRKT.WPF
             // Serwis przypomnień
             services.AddScoped<IPrzypomnienieService, PrzypomnienieService>();
             services.AddScoped<IRepository<Przypomnienie>, Repository<Przypomnienie>>();
+            services.AddScoped<IPowiadomienieService, PowiadomienieService>();
+            services.AddScoped<IPrzypomnienieService, PrzypomnienieService>();
 
             // Okna
             services.AddTransient<LoginWindow>();

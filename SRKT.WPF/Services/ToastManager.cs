@@ -1,12 +1,14 @@
-﻿using SRKT.WPF.Controls;
+﻿using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
+using System.Windows.Threading;
 
 namespace SRKT.WPF.Services
 {
     /// <summary>
-    /// Singleton menedżer do wyświetlania Toast notifications
-    /// Obsługuje kolejkowanie wielu powiadomień
+    /// Singleton do zarządzania powiadomieniami Toast/Pop-up w aplikacji
     /// </summary>
     public class ToastManager
     {
@@ -14,10 +16,10 @@ namespace SRKT.WPF.Services
         private static readonly object _lock = new object();
 
         private Panel _container;
-        private readonly Queue<(string Tytul, string Tresc, ToastType Typ)> _queue = new();
-        private ToastNotification _currentToast;
-        private const int MAX_VISIBLE = 3;
-        private readonly List<ToastNotification> _visibleToasts = new();
+        private readonly int _maxToasts = 5;
+        private readonly double _toastDuration = 5.0; // sekundy
+
+        private ToastManager() { }
 
         public static ToastManager Instance
         {
@@ -27,18 +29,18 @@ namespace SRKT.WPF.Services
                 {
                     lock (_lock)
                     {
-                        _instance ??= new ToastManager();
+                        if (_instance == null)
+                        {
+                            _instance = new ToastManager();
+                        }
                     }
                 }
                 return _instance;
             }
         }
 
-        private ToastManager() { }
-
         /// <summary>
-        /// Inicjalizuje menedżer z kontenerem gdzie będą wyświetlane Toasty
-        /// Kontener powinien być Grid lub StackPanel w głównym oknie
+        /// Inicjalizuje ToastManager z kontenerem do wyświetlania powiadomień
         /// </summary>
         public void Initialize(Panel container)
         {
@@ -46,100 +48,232 @@ namespace SRKT.WPF.Services
         }
 
         /// <summary>
-        /// Wyświetla Toast notification
+        /// Wyświetla powiadomienie informacyjne (niebieskie)
         /// </summary>
-        public void ShowToast(string tytul, string tresc, ToastType typ = ToastType.Info)
+        public void ShowInfo(string title, string message)
         {
-            if (_container == null)
-            {
-                System.Diagnostics.Debug.WriteLine("ToastManager: Kontener nie został zainicjalizowany!");
-                return;
-            }
+            ShowToast(title, message, ToastType.Info);
+        }
 
+        /// <summary>
+        /// Wyświetla powiadomienie sukcesu (zielone)
+        /// </summary>
+        public void ShowSuccess(string title, string message)
+        {
+            ShowToast(title, message, ToastType.Success);
+        }
+
+        /// <summary>
+        /// Wyświetla powiadomienie ostrzeżenia (pomarańczowe)
+        /// </summary>
+        public void ShowWarning(string title, string message)
+        {
+            ShowToast(title, message, ToastType.Warning);
+        }
+
+        /// <summary>
+        /// Wyświetla powiadomienie błędu (czerwone)
+        /// </summary>
+        public void ShowError(string title, string message)
+        {
+            ShowToast(title, message, ToastType.Error);
+        }
+
+        private void ShowToast(string title, string message, ToastType type)
+        {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                // Jeśli za dużo widocznych, dodaj do kolejki
-                if (_visibleToasts.Count >= MAX_VISIBLE)
+                if (_container == null)
                 {
-                    _queue.Enqueue((tytul, tresc, typ));
+                    // Fallback - użyj MessageBox jeśli kontener nie jest ustawiony
+                    MessageBox.Show(message, title, MessageBoxButton.OK,
+                        type == ToastType.Error ? MessageBoxImage.Error : MessageBoxImage.Information);
                     return;
                 }
 
-                ShowToastInternal(tytul, tresc, typ);
+                // Ogranicz liczbę toastów
+                while (_container.Children.Count >= _maxToasts)
+                {
+                    _container.Children.RemoveAt(0);
+                }
+
+                // Utwórz toast
+                var toast = CreateToast(title, message, type);
+                _container.Children.Add(toast);
+
+                // Auto-ukryj po czasie
+                var timer = new DispatcherTimer
+                {
+                    Interval = TimeSpan.FromSeconds(_toastDuration)
+                };
+                timer.Tick += (s, e) =>
+                {
+                    timer.Stop();
+                    HideToast(toast);
+                };
+                timer.Start();
             });
         }
 
-        /// <summary>
-        /// Skrót do wyświetlenia informacyjnego Toasta
-        /// </summary>
-        public void ShowInfo(string tytul, string tresc) => ShowToast(tytul, tresc, ToastType.Info);
-
-        /// <summary>
-        /// Skrót do wyświetlenia Toasta sukcesu
-        /// </summary>
-        public void ShowSuccess(string tytul, string tresc) => ShowToast(tytul, tresc, ToastType.Success);
-
-        /// <summary>
-        /// Skrót do wyświetlenia Toasta ostrzeżenia
-        /// </summary>
-        public void ShowWarning(string tytul, string tresc) => ShowToast(tytul, tresc, ToastType.Warning);
-
-        /// <summary>
-        /// Skrót do wyświetlenia Toasta błędu
-        /// </summary>
-        public void ShowError(string tytul, string tresc) => ShowToast(tytul, tresc, ToastType.Error);
-
-        private void ShowToastInternal(string tytul, string tresc, ToastType typ)
+        private Border CreateToast(string title, string message, ToastType type)
         {
-            var toast = new ToastNotification();
-            
-            // Pozycjonowanie - każdy kolejny niżej
-            int index = _visibleToasts.Count;
-            toast.Margin = new Thickness(0, 10 + (index * 100), 10, 0);
-            toast.HorizontalAlignment = HorizontalAlignment.Right;
-            toast.VerticalAlignment = VerticalAlignment.Top;
-
-            toast.Closed += (s, e) =>
+            // Kolory w zależności od typu
+            var (bgColor, iconText) = type switch
             {
-                _container.Children.Remove(toast);
-                _visibleToasts.Remove(toast);
-                
-                // Przepozycjonuj pozostałe
-                RepositionToasts();
+                ToastType.Success => ("#27AE60", "✓"),
+                ToastType.Warning => ("#F39C12", "⚠"),
+                ToastType.Error => ("#E74C3C", "✕"),
+                _ => ("#3498DB", "🔔")
+            };
 
-                // Pokaż następny z kolejki
-                if (_queue.Count > 0)
+            // Główny kontener
+            var border = new Border
+            {
+                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2C3E50")),
+                CornerRadius = new CornerRadius(8),
+                Margin = new Thickness(0, 0, 0, 10),
+                Width = 320,
+                MinHeight = 70,
+                HorizontalAlignment = HorizontalAlignment.Right,
+                Opacity = 0,
+                RenderTransform = new TranslateTransform(50, 0)
+            };
+
+            // Efekt cienia
+            border.Effect = new System.Windows.Media.Effects.DropShadowEffect
+            {
+                BlurRadius = 15,
+                ShadowDepth = 3,
+                Opacity = 0.3
+            };
+
+            // Grid wewnętrzny
+            var grid = new Grid { Margin = new Thickness(15) };
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(45) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+            // Ikona
+            var iconBorder = new Border
+            {
+                Width = 35,
+                Height = 35,
+                CornerRadius = new CornerRadius(17),
+                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(bgColor)),
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            var iconText2 = new TextBlock
+            {
+                Text = iconText,
+                FontSize = 16,
+                Foreground = Brushes.White,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            iconBorder.Child = iconText2;
+            Grid.SetColumn(iconBorder, 0);
+            grid.Children.Add(iconBorder);
+
+            // Treść
+            var contentStack = new StackPanel
+            {
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(10, 0, 0, 0)
+            };
+            contentStack.Children.Add(new TextBlock
+            {
+                Text = title,
+                FontWeight = FontWeights.Bold,
+                FontSize = 13,
+                Foreground = Brushes.White,
+                TextTrimming = TextTrimming.CharacterEllipsis
+            });
+            contentStack.Children.Add(new TextBlock
+            {
+                Text = message,
+                FontSize = 11,
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#BDC3C7")),
+                TextWrapping = TextWrapping.Wrap,
+                MaxHeight = 40,
+                TextTrimming = TextTrimming.CharacterEllipsis,
+                Margin = new Thickness(0, 3, 0, 0)
+            });
+            Grid.SetColumn(contentStack, 1);
+            grid.Children.Add(contentStack);
+
+            // Przycisk zamknięcia
+            var closeBtn = new Button
+            {
+                Content = "✕",
+                Width = 25,
+                Height = 25,
+                Background = Brushes.Transparent,
+                Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#7F8C8D")),
+                BorderThickness = new Thickness(0),
+                Cursor = System.Windows.Input.Cursors.Hand,
+                VerticalAlignment = VerticalAlignment.Top,
+                FontSize = 12
+            };
+            closeBtn.Click += (s, e) => HideToast(border);
+            Grid.SetColumn(closeBtn, 2);
+            grid.Children.Add(closeBtn);
+
+            // Pasek koloru z lewej strony
+            var colorBar = new Border
+            {
+                Width = 4,
+                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(bgColor)),
+                HorizontalAlignment = HorizontalAlignment.Left,
+                CornerRadius = new CornerRadius(8, 0, 0, 8)
+            };
+
+            // Główny grid z paskiem i zawartością
+            var mainGrid = new Grid();
+            mainGrid.Children.Add(colorBar);
+            mainGrid.Children.Add(grid);
+
+            border.Child = mainGrid;
+
+            // Animacja wejścia
+            var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(300));
+            var slideIn = new DoubleAnimation(50, 0, TimeSpan.FromMilliseconds(300))
+            {
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            };
+
+            border.BeginAnimation(UIElement.OpacityProperty, fadeIn);
+            ((TranslateTransform)border.RenderTransform).BeginAnimation(TranslateTransform.XProperty, slideIn);
+
+            return border;
+        }
+
+        private void HideToast(Border toast)
+        {
+            if (toast == null || !_container.Children.Contains(toast))
+                return;
+
+            // Animacja wyjścia
+            var fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(200));
+            var slideOut = new DoubleAnimation(0, 50, TimeSpan.FromMilliseconds(200));
+
+            fadeOut.Completed += (s, e) =>
+            {
+                if (_container.Children.Contains(toast))
                 {
-                    var next = _queue.Dequeue();
-                    ShowToastInternal(next.Tytul, next.Tresc, next.Typ);
+                    _container.Children.Remove(toast);
                 }
             };
 
-            _visibleToasts.Add(toast);
-            _container.Children.Add(toast);
-            toast.Show(tytul, tresc, typ);
+            toast.BeginAnimation(UIElement.OpacityProperty, fadeOut);
+            ((TranslateTransform)toast.RenderTransform).BeginAnimation(TranslateTransform.XProperty, slideOut);
         }
 
-        private void RepositionToasts()
+        private enum ToastType
         {
-            for (int i = 0; i < _visibleToasts.Count; i++)
-            {
-                var toast = _visibleToasts[i];
-                toast.Margin = new Thickness(0, 10 + (i * 100), 10, 0);
-            }
-        }
-
-        /// <summary>
-        /// Zamyka wszystkie widoczne Toasty
-        /// </summary>
-        public void ClearAll()
-        {
-            _queue.Clear();
-            var toastsToClose = _visibleToasts.ToList();
-            foreach (var toast in toastsToClose)
-            {
-                toast.Hide();
-            }
+            Info,
+            Success,
+            Warning,
+            Error
         }
     }
 }
