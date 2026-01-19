@@ -28,9 +28,9 @@ namespace SRKT.WPF.ViewModels
             IPrzypomnienieService przypomnienieService = null,
             IPowiadomienieService powiadomienieService = null)
         {
-            _kortRepo = kortRepo;
-            _rezerwacjaService = rezerwacjaService;
-            _uzytkownikRepo = uzytkownikRepo;
+            _kortRepo = kortRepo ?? throw new ArgumentNullException(nameof(kortRepo));
+            _rezerwacjaService = rezerwacjaService ?? throw new ArgumentNullException(nameof(rezerwacjaService));
+            _uzytkownikRepo = uzytkownikRepo ?? throw new ArgumentNullException(nameof(uzytkownikRepo));
             _przypomnienieService = przypomnienieService;
             _powiadomienieService = powiadomienieService;
 
@@ -108,45 +108,101 @@ namespace SRKT.WPF.ViewModels
 
         private void PokazDostepneKorty()
         {
-            var viewModel = new DostepneKortyViewModel(_kortRepo, _rezerwacjaService, AktualnyUzytkownik);
-            var view = new DostepneKortyView { DataContext = viewModel };
-            AktualnyWidok = view;
+            try
+            {
+                var viewModel = new DostepneKortyViewModel(_kortRepo, _rezerwacjaService, AktualnyUzytkownik);
+                var view = new DostepneKortyView { DataContext = viewModel };
+                AktualnyWidok = view;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Błąd podczas ładowania widoku kortów: {ex.Message}",
+                    "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void PokazMojeRezerwacje()
         {
-            var viewModel = new MojeRezerwacjeViewModel(_rezerwacjaService, AktualnyUzytkownik);
-            var view = new MojeRezerwacjeView { DataContext = viewModel };
-            AktualnyWidok = view;
+            try
+            {
+                var viewModel = new MojeRezerwacjeViewModel(_rezerwacjaService, AktualnyUzytkownik);
+                var view = new MojeRezerwacjeView { DataContext = viewModel };
+                AktualnyWidok = view;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Błąd podczas ładowania rezerwacji: {ex.Message}",
+                    "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void PokazPrzypomnienia()
         {
-            if (_przypomnienieService == null || _rezerwacjaService == null)
+            try
             {
-                MessageBox.Show("Serwis przypomnień nie jest dostępny.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
+                if (_przypomnienieService == null)
+                {
+                    // Spróbuj pobrać z DI
+                    var przypomnienieService = ((App)Application.Current).ServiceProvider
+                        ?.GetService(typeof(IPrzypomnienieService)) as IPrzypomnienieService;
 
-            var viewModel = new PrzypomnieniViewModel(_przypomnienieService, _rezerwacjaService, AktualnyUzytkownik);
-            var view = new PrzypomnieniView { DataContext = viewModel };
-            AktualnyWidok = view;
+                    if (przypomnienieService == null)
+                    {
+                        MessageBox.Show("Serwis przypomnień nie jest dostępny.\nSprawdź konfigurację aplikacji.",
+                            "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+
+                    var viewModel = new PrzypomnieniViewModel(przypomnienieService, _rezerwacjaService, AktualnyUzytkownik);
+                    var view = new PrzypomnieniView { DataContext = viewModel };
+                    AktualnyWidok = view;
+                }
+                else
+                {
+                    var viewModel = new PrzypomnieniViewModel(_przypomnienieService, _rezerwacjaService, AktualnyUzytkownik);
+                    var view = new PrzypomnieniView { DataContext = viewModel };
+                    AktualnyWidok = view;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Błąd podczas ładowania przypomnień: {ex.Message}\n\nSzczegóły: {ex.StackTrace}",
+                    "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void PokazPowiadomienia()
         {
-            if (_powiadomienieService == null)
+            try
             {
-                MessageBox.Show("Serwis powiadomień nie jest dostępny.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
+                IPowiadomienieService powiadomienieService = _powiadomienieService;
+
+                if (powiadomienieService == null)
+                {
+                    // Spróbuj pobrać z DI
+                    powiadomienieService = ((App)Application.Current).ServiceProvider
+                        ?.GetService(typeof(IPowiadomienieService)) as IPowiadomienieService;
+                }
+
+                if (powiadomienieService == null)
+                {
+                    MessageBox.Show("Serwis powiadomień nie jest dostępny.\nSprawdź konfigurację aplikacji.",
+                        "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                var viewModel = new PowiadomieniaViewModel(powiadomienieService, AktualnyUzytkownik);
+                var view = new PowiadomieniaView { DataContext = viewModel };
+                AktualnyWidok = view;
+
+                // Odśwież licznik po otwarciu widoku
+                _ = ZaladujLiczbeNieprzeczytanychAsync();
             }
-
-            var viewModel = new PowiadomieniaViewModel(_powiadomienieService, AktualnyUzytkownik);
-            var view = new PowiadomieniaView { DataContext = viewModel };
-            AktualnyWidok = view;
-
-            // Odśwież licznik po otwarciu widoku
-            _ = ZaladujLiczbeNieprzeczytanychAsync();
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Błąd podczas ładowania powiadomień: {ex.Message}",
+                    "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void Wyloguj()
@@ -188,7 +244,14 @@ namespace SRKT.WPF.ViewModels
             // Wyświetl Toast
             Application.Current.Dispatcher.Invoke(() =>
             {
-                ToastManager.Instance.ShowInfo(e.Tytul, e.Tresc);
+                try
+                {
+                    ToastManager.Instance.ShowInfo(e.Tytul, e.Tresc);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Błąd wyświetlania toast: {ex.Message}");
+                }
             });
 
             // Odśwież licznik

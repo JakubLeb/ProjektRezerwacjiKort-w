@@ -3,6 +3,7 @@ using SRKT.Business.Services;
 using SRKT.Core.Models;
 using SRKT.DataAccess.Repositories;
 using SRKT.WPF.ViewModels;
+using SRKT.WPF.Views;
 using System.Windows;
 
 namespace SRKT.WPF
@@ -19,18 +20,16 @@ namespace SRKT.WPF
         {
             InitializeComponent();
 
-            // Pobierz IPrzypomnienieService z DI
+            // Pobierz serwis przypomnień z DI
             var przypomnienieService = ((App)Application.Current).ServiceProvider
-                .GetService(typeof(IPrzypomnienieService)) as IPrzypomnienieService;
+                ?.GetService(typeof(IPrzypomnienieService)) as IPrzypomnienieService;
 
-            // WAŻNE: Prawidłowa kolejność argumentów!
-            // MainViewModel(kortRepo, rezerwacjaService, uzytkownikRepo, przypomnienieService, powiadomienieService)
             _viewModel = new MainViewModel(
                 kortRepo,
                 rezerwacjaService,
                 uzytkownikRepo,
-                przypomnienieService,      // 4. argument - IPrzypomnienieService
-                powiadomienieService);     // 5. argument - IPowiadomienieService
+                przypomnienieService,  // Może być null - MainViewModel to obsłuży
+                powiadomienieService);
 
             _viewModel.LogoutRequested += OnLogoutRequested;
 
@@ -40,15 +39,25 @@ namespace SRKT.WPF
         public void SetUzytkownik(Uzytkownik uzytkownik)
         {
             _viewModel.AktualnyUzytkownik = uzytkownik;
+
+            // Domyślnie pokaż dostępne korty
             _viewModel.PokazDostepneKortyCommand.Execute(null);
         }
 
         private void OnLogoutRequested(object sender, EventArgs e)
         {
-            var app = (App)Application.Current;
-            var loginWindow = app.ServiceProvider.GetRequiredService<Views.LoginWindow>();
-            loginWindow.Show();
-            this.Close();
+            try
+            {
+                var app = (App)Application.Current;
+                var loginWindow = app.ServiceProvider.GetRequiredService<LoginWindow>();
+                loginWindow.Show();
+                this.Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Błąd podczas wylogowywania: {ex.Message}",
+                    "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 }
