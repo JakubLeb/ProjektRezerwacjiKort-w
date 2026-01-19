@@ -114,7 +114,7 @@ namespace SRKT.Business.Services
             // Używamy nowej metody z repozytorium, która pobiera pełne dane
             var dataOd = data.Date;
             var dataDo = data.Date.AddDays(1).AddTicks(-1);
-
+            
             return await _rezerwacjaRepo.GetRezerwacjeByDataAsync(dataOd, dataDo);
         }
 

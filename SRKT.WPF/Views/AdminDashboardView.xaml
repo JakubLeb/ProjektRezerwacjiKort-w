@@ -2,9 +2,10 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d" d:DesignHeight="800" d:DesignWidth="1000"
              Background="#F5F6FA">
+
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <Grid Margin="25">
             <Grid.RowDefinitions>
@@ -47,16 +48,16 @@
                     </StackPanel>
                 </Border>
 
-                <!-- NOWY KAFELEK: Oczekujące rejestracje -->
+                <!-- Kafelek: Oczekujące rezerwacje -->
                 <Border Background="White" CornerRadius="10" Padding="20" Margin="10,0,0,0" BorderBrush="#DCDDE1" BorderThickness="1">
                     <StackPanel>
-                        <TextBlock Text="Oczekujące rejestracje" Foreground="#7F8C8D" FontSize="12" FontWeight="Bold"/>
-                        <TextBlock Text="{Binding OczekujaceRejestracje.Count}" FontSize="24" FontWeight="Bold" Foreground="#9B59B6" Margin="0,5,0,0"/>
+                        <TextBlock Text="Oczekujące na zatwierdzenie" Foreground="#7F8C8D" FontSize="12" FontWeight="Bold"/>
+                        <TextBlock Text="{Binding OczekujaceRezerwacje.Count}" FontSize="24" FontWeight="Bold" Foreground="#F39C12" Margin="0,5,0,0"/>
                     </StackPanel>
                 </Border>
             </UniformGrid>
 
-            <!-- NOWA SEKCJA: Oczekujące rejestracje -->
+            <!-- SEKCJA: Oczekujące rezerwacje do zatwierdzenia -->
             <Border Grid.Row="2" Background="White" CornerRadius="10" BorderBrush="#DCDDE1" BorderThickness="1" Margin="0,0,0,25"
                     Visibility="{Binding CzyPokazacOczekujace}">
                 <Grid>
@@ -66,48 +67,92 @@
                     </Grid.RowDefinitions>
 
                     <!-- Nagłówek sekcji -->
-                    <Border Grid.Row="0" Background="#9B59B6" CornerRadius="10,10,0,0" Padding="15">
+                    <Border Grid.Row="0" Background="#F39C12" CornerRadius="10,10,0,0" Padding="15">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="👤" FontSize="18" Margin="0,0,10,0"/>
-                            <TextBlock Text="Nowe rejestracje oczekujące na zatwierdzenie" 
+                            <TextBlock Text="⏳" FontSize="18" Margin="0,0,10,0"/>
+                            <TextBlock Text="Rezerwacje oczekujące na zatwierdzenie" 
                                       FontSize="16" FontWeight="Bold" Foreground="White" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Border>
 
-                    <!-- Lista oczekujących -->
-                    <ItemsControl Grid.Row="1" ItemsSource="{Binding OczekujaceRejestracje}" Margin="10">
+                    <!-- Lista oczekujących rezerwacji -->
+                    <ItemsControl Grid.Row="1" ItemsSource="{Binding OczekujaceRezerwacje}" Margin="10">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Border BorderBrush="#EEEEEE" BorderThickness="0,0,0,1" Padding="10" Margin="0,0,0,5">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="100"/>
+                                            <ColumnDefinition Width="150"/>
                                             <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="100"/>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
 
-                                        <!-- Dane użytkownika -->
+                                        <!-- Godziny -->
                                         <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                             <TextBlock FontWeight="Bold" FontSize="14" Foreground="#2C3E50">
-                                                <Run Text="{Binding Imie}"/>
-                                                <Run Text=" "/>
-                                                <Run Text="{Binding Nazwisko}"/>
+                                                <Run Text="{Binding DataRezerwacji, StringFormat=HH:mm}"/>
+                                                <Run Text=" - "/>
+                                                <Run Text="{Binding DataZakonczenia, StringFormat=HH:mm, Mode=OneWay}"/>
                                             </TextBlock>
-                                            <TextBlock Text="{Binding Email}" Foreground="#7F8C8D" FontSize="12"/>
                                         </StackPanel>
 
-                                        <!-- Data rejestracji -->
-                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="20,0">
-                                            <TextBlock Text="Data rejestracji:" Foreground="#7F8C8D" FontSize="10"/>
-                                            <TextBlock Text="{Binding DataUtworzenia, StringFormat=dd.MM.yyyy HH:mm}" 
-                                                      FontWeight="SemiBold" FontSize="12" Foreground="#2C3E50"/>
+                                        <!-- Kort -->
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Kort.Nazwa, FallbackValue='Kort'}" FontWeight="SemiBold" FontSize="13" Foreground="#2C3E50"/>
+                                            <TextBlock Text="{Binding Kort.ObiektSportowy.Nazwa, FallbackValue=''}" Foreground="#7F8C8D" FontSize="11"/>
                                         </StackPanel>
+
+                                        <!-- Klient -->
+                                        <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="10,0">
+                                            <TextBlock Text="{Binding Uzytkownik.PelneImieNazwisko, FallbackValue='Klient'}" FontWeight="SemiBold" FontSize="13" Foreground="#2C3E50"/>
+                                            <TextBlock Text="{Binding Uzytkownik.Email, FallbackValue=''}" Foreground="#7F8C8D" FontSize="11"/>
+                                        </StackPanel>
+
+                                        <!-- Kwota -->
+                                        <TextBlock Grid.Column="3" 
+                                                  Text="{Binding KosztCalkowity, StringFormat={}{0:N2} zł}" 
+                                                  FontWeight="Bold" FontSize="14" Foreground="#27AE60"
+                                                  VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,15,0"/>
+
+                                        <!-- Uwagi -->
+                                        <Border Grid.Column="4" 
+                                                Background="#FFF8E1" 
+                                                CornerRadius="5" 
+                                                Padding="8,4" 
+                                                Margin="10,0"
+                                                VerticalAlignment="Center">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Uwagi}" Value="{x:Null}">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Uwagi}" Value="">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="📝 " FontSize="12"/>
+                                                <TextBlock Text="{Binding Uwagi}" 
+                                                          FontSize="11" 
+                                                          Foreground="#795548"
+                                                          MaxWidth="150"
+                                                          TextTrimming="CharacterEllipsis"
+                                                          ToolTip="{Binding Uwagi}"/>
+                                            </StackPanel>
+                                        </Border>
 
                                         <!-- Przycisk Zatwierdź -->
-                                        <Button Grid.Column="2" 
+                                        <Button Grid.Column="5" 
                                                Content="✓ Zatwierdź" 
-                                               Command="{Binding DataContext.ZatwierdzRejestracjeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                               Command="{Binding DataContext.ZatwierdzRezerwacjeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                CommandParameter="{Binding}"
                                                Background="#27AE60" 
                                                Foreground="White" 
@@ -139,9 +184,9 @@
                                         </Button>
 
                                         <!-- Przycisk Odrzuć -->
-                                        <Button Grid.Column="3" 
-                                               Content="✗ Odrzuć" 
-                                               Command="{Binding DataContext.OdrzucRejestracjeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        <Button Grid.Column="6" 
+                                               Content="✗ Anuluj" 
+                                               Command="{Binding DataContext.OdrzucRezerwacjeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                CommandParameter="{Binding}"
                                                Background="#E74C3C" 
                                                Foreground="White" 
@@ -199,7 +244,7 @@
                                         <TextBlock Text="{Binding DataRezerwacji, StringFormat=HH:mm}" 
                                                   FontWeight="Bold" Foreground="#2C3E50" FontSize="14"/>
                                         <TextBlock Text=" - " Foreground="#7F8C8D" FontSize="14"/>
-                                        <TextBlock Text="{Binding DataZakonczenia, StringFormat=HH:mm}" 
+                                        <TextBlock Text="{Binding DataZakonczenia, StringFormat=HH:mm, Mode=OneWay}" 
                                                   FontWeight="Bold" Foreground="#2C3E50" FontSize="14"/>
                                     </StackPanel>
                                 </DataTemplate>
@@ -256,6 +301,40 @@
                                     <TextBlock Text="{Binding KosztCalkowity, StringFormat={}{0:N2} zł}" 
                                               VerticalAlignment="Center" Margin="10,0"
                                               FontWeight="Bold" Foreground="#2C3E50" FontSize="13"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <!-- Uwagi klienta -->
+                        <DataGridTemplateColumn Header="Uwagi" Width="150">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border Background="#FFF8E1" 
+                                           CornerRadius="5" 
+                                           Padding="6,3" 
+                                           Margin="5,0"
+                                           VerticalAlignment="Center"
+                                           HorizontalAlignment="Left">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Uwagi}" Value="{x:Null}">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Uwagi}" Value="">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <TextBlock Text="{Binding Uwagi}" 
+                                                  FontSize="11" 
+                                                  Foreground="#795548"
+                                                  MaxWidth="120"
+                                                  TextTrimming="CharacterEllipsis"
+                                                  ToolTip="{Binding Uwagi}"/>
+                                    </Border>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
