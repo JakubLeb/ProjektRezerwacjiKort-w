@@ -46,6 +46,8 @@ namespace SRKT.WPF.ViewModels
             {
                 _powiadomienieService.NowePowiadomienieToast += OnNowePowiadomienieToast;
             }
+
+            // NIE pokazujemy domyślnego widoku tutaj - czekamy na ustawienie użytkownika
         }
 
         #region Właściwości
@@ -58,7 +60,10 @@ namespace SRKT.WPF.ViewModels
                 if (SetProperty(ref _aktualnyUzytkownik, value))
                 {
                     // Załaduj liczbę nieprzeczytanych po ustawieniu użytkownika
-                    _ = ZaladujLiczbeNieprzeczytanychAsync();
+                    if (value != null)
+                    {
+                        _ = ZaladujLiczbeNieprzeczytanychAsync();
+                    }
                 }
             }
         }
@@ -108,6 +113,13 @@ namespace SRKT.WPF.ViewModels
 
         private void PokazDostepneKorty()
         {
+            // Sprawdź czy użytkownik jest ustawiony
+            if (AktualnyUzytkownik == null)
+            {
+                MessageBox.Show("Błąd: Nie zalogowano użytkownika.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
             try
             {
                 var viewModel = new DostepneKortyViewModel(_kortRepo, _rezerwacjaService, AktualnyUzytkownik);
@@ -123,6 +135,12 @@ namespace SRKT.WPF.ViewModels
 
         private void PokazMojeRezerwacje()
         {
+            if (AktualnyUzytkownik == null)
+            {
+                MessageBox.Show("Błąd: Nie zalogowano użytkownika.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
             try
             {
                 var viewModel = new MojeRezerwacjeViewModel(_rezerwacjaService, AktualnyUzytkownik);
@@ -138,13 +156,21 @@ namespace SRKT.WPF.ViewModels
 
         private void PokazPrzypomnienia()
         {
+            if (AktualnyUzytkownik == null)
+            {
+                MessageBox.Show("Błąd: Nie zalogowano użytkownika.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
             try
             {
-                if (_przypomnienieService == null)
+                IPrzypomnienieService przypomnienieService = _przypomnienieService;
+
+                if (przypomnienieService == null)
                 {
                     // Spróbuj pobrać z DI
-                    var przypomnienieService = ((App)Application.Current).ServiceProvider
-                        ?.GetService(typeof(IPrzypomnienieService)) as IPrzypomnienieService;
+                    var app = Application.Current as App;
+                    przypomnienieService = app?.ServiceProvider?.GetService(typeof(IPrzypomnienieService)) as IPrzypomnienieService;
 
                     if (przypomnienieService == null)
                     {
@@ -152,17 +178,11 @@ namespace SRKT.WPF.ViewModels
                             "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning);
                         return;
                     }
+                }
 
-                    var viewModel = new PrzypomnieniViewModel(przypomnienieService, _rezerwacjaService, AktualnyUzytkownik);
-                    var view = new PrzypomnieniView { DataContext = viewModel };
-                    AktualnyWidok = view;
-                }
-                else
-                {
-                    var viewModel = new PrzypomnieniViewModel(_przypomnienieService, _rezerwacjaService, AktualnyUzytkownik);
-                    var view = new PrzypomnieniView { DataContext = viewModel };
-                    AktualnyWidok = view;
-                }
+                var viewModel = new PrzypomnieniViewModel(przypomnienieService, _rezerwacjaService, AktualnyUzytkownik);
+                var view = new PrzypomnieniView { DataContext = viewModel };
+                AktualnyWidok = view;
             }
             catch (Exception ex)
             {
@@ -173,6 +193,12 @@ namespace SRKT.WPF.ViewModels
 
         private void PokazPowiadomienia()
         {
+            if (AktualnyUzytkownik == null)
+            {
+                MessageBox.Show("Błąd: Nie zalogowano użytkownika.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
             try
             {
                 IPowiadomienieService powiadomienieService = _powiadomienieService;
@@ -180,8 +206,8 @@ namespace SRKT.WPF.ViewModels
                 if (powiadomienieService == null)
                 {
                     // Spróbuj pobrać z DI
-                    powiadomienieService = ((App)Application.Current).ServiceProvider
-                        ?.GetService(typeof(IPowiadomienieService)) as IPowiadomienieService;
+                    var app = Application.Current as App;
+                    powiadomienieService = app?.ServiceProvider?.GetService(typeof(IPowiadomienieService)) as IPowiadomienieService;
                 }
 
                 if (powiadomienieService == null)

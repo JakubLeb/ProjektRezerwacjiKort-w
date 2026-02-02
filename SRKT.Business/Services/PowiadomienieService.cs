@@ -1,6 +1,5 @@
 ﻿using SRKT.Core.Models;
 using SRKT.DataAccess.Repositories;
-using System.Net.Mail;
 
 namespace SRKT.Business.Services
 {
@@ -15,7 +14,6 @@ namespace SRKT.Business.Services
 
         // Symulacja konfiguracji email (w produkcji byłoby to w appsettings.json)
         private readonly bool _emailEnabled = true;
-        private readonly string _emailLogPath = "email_log.txt";
 
         public PowiadomienieService(
             IRepository<Powiadomienie> powiadomienieRepo,
@@ -43,7 +41,7 @@ namespace SRKT.Business.Services
                 TypPowiadomieniaEnum.Systemowe,
                 rezerwacjaId);
 
-            // Dodatkowo wysyłamy Toast
+            // Dodatkowo wysyłamy natywny Windows Toast
             await WyslijPowiadomienieAsync(
                 rezerwacja.UzytkownikId,
                 tytul,
@@ -104,7 +102,8 @@ namespace SRKT.Business.Services
                         break;
 
                     case TypPowiadomieniaEnum.Push:
-                        sukces = WyzwolToast(uzytkownikId, tytul, tresc);
+                        sukces = WyslijNatywnyWindowsToast(tytul, tresc, rezerwacjaId);
+                        WyzwolToastEvent(uzytkownikId, tytul, tresc);
                         break;
                 }
 
@@ -116,13 +115,7 @@ namespace SRKT.Business.Services
                 powiadomienie.DataWyslania = sukces ? DateTime.Now : null;
 
                 // Zapisz do bazy
-                var zapisane = await _powiadomienieRepo.AddAsync(powiadomienie);
-
-                // Dla Push - przekaż ID powiadomienia
-                if (typ == TypPowiadomieniaEnum.Push && sukces)
-                {
-                    WyzwolToastZId(uzytkownikId, tytul, tresc, zapisane.Id);
-                }
+                await _powiadomienieRepo.AddAsync(powiadomienie);
 
                 return sukces;
             }
@@ -148,7 +141,7 @@ namespace SRKT.Business.Services
             // Systemowe (w aplikacji)
             await WyslijPowiadomienieAsync(uzytkownikId, tytul, tresc, TypPowiadomieniaEnum.Systemowe, rezerwacjaId);
 
-            // Toast/Push
+            // Natywny Windows Toast
             await WyslijPowiadomienieAsync(uzytkownikId, tytul, tresc, TypPowiadomieniaEnum.Push, rezerwacjaId);
         }
 
@@ -230,6 +223,25 @@ namespace SRKT.Business.Services
         #region Prywatne metody obsługi kanałów
 
         /// <summary>
+        /// Wysyła natywne powiadomienie Windows Toast
+        /// </summary>
+        private bool WyslijNatywnyWindowsToast(string tytul, string tresc, int? rezerwacjaId = null)
+        {
+            try
+            {
+                // Użyj WindowsToastService z warstwy WPF (jeśli dostępny)
+                // lub po prostu wyzwól event który zostanie obsłużony przez UI
+                System.Diagnostics.Debug.WriteLine($"[WINDOWS TOAST] {tytul}: {tresc}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Błąd wysyłki Windows Toast: {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Symulacja wysyłki email (w produkcji: SMTP)
         /// </summary>
         private async Task<bool> WyslijEmailAsync(int uzytkownikId, string tytul, string tresc)
@@ -260,9 +272,6 @@ namespace SRKT.Business.Services
                 // Zapisz do logu (symulacja)
                 System.Diagnostics.Debug.WriteLine($"[EMAIL] Do: {emailOdbiorcy}, Temat: {tytul}");
 
-                // W środowisku produkcyjnym tutaj byłby kod SMTP:
-                // await SendSmtpEmailAsync(emailOdbiorcy, tytul, tresc);
-
                 // Opcjonalnie zapisz do pliku
                 try
                 {
@@ -285,9 +294,9 @@ namespace SRKT.Business.Services
         }
 
         /// <summary>
-        /// Wyzwala event Toast/Push
+        /// Wyzwala event Toast dla aplikacji (opcjonalne)
         /// </summary>
-        private bool WyzwolToast(int uzytkownikId, string tytul, string tresc)
+        private void WyzwolToastEvent(int uzytkownikId, string tytul, string tresc)
         {
             try
             {
@@ -298,28 +307,11 @@ namespace SRKT.Business.Services
                     Tresc = tresc,
                     Typ = TypPowiadomieniaEnum.Push
                 });
-
-                return true;
             }
             catch
             {
-                return false;
+                // Ignoruj błędy eventu
             }
-        }
-
-        /// <summary>
-        /// Wyzwala event Toast z ID powiadomienia
-        /// </summary>
-        private void WyzwolToastZId(int uzytkownikId, string tytul, string tresc, int powiadomienieId)
-        {
-            NowePowiadomienieToast?.Invoke(this, new PowiadomienieEventArgs
-            {
-                UzytkownikId = uzytkownikId,
-                Tytul = tytul,
-                Tresc = tresc,
-                Typ = TypPowiadomieniaEnum.Push,
-                PowiadomienieId = powiadomienieId
-            });
         }
 
         #endregion

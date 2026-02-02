@@ -1,10 +1,9 @@
-﻿using SRKT.Business.Services;
+﻿// SRKT.WPF/ViewModels/RezerwacjaViewModel.cs
+
+using SRKT.Business.Services;
 using SRKT.Core.Models;
 using SRKT.WPF.Views;
 using System;
-using System.Linq;
-using System.Threading.Tasks;
-using SRKT.Business.Services;
 using System.Windows;
 using System.Windows.Input;
 
@@ -29,24 +28,34 @@ namespace SRKT.WPF.ViewModels
             Uzytkownik uzytkownik,
             Action closeAction)
         {
-            _opcja = opcja;
-            _rezerwacjaService = rezerwacjaService;
-            _platnoscService = platnoscService;
-            _uzytkownik = uzytkownik;
-            _closeAction = closeAction;
+            _opcja = opcja ?? throw new ArgumentNullException(nameof(opcja));
+            _rezerwacjaService = rezerwacjaService ?? throw new ArgumentNullException(nameof(rezerwacjaService));
+            _platnoscService = platnoscService; // Może być null
+            _uzytkownik = uzytkownik ?? throw new ArgumentNullException(nameof(uzytkownik));
+            _closeAction = closeAction ?? throw new ArgumentNullException(nameof(closeAction));
 
-            // Obliczenie ceny: Cena za godzinę * czas trwania
-            CenaCalkowita = opcja.CenaZaGodzine * opcja.Slot.Dlugosc;
+            // Bezpieczne obliczenie ceny
+            if (_opcja.Slot != null)
+            {
+                CenaCalkowita = _opcja.CenaZaGodzine * _opcja.Slot.Dlugosc;
+            }
+            else
+            {
+                CenaCalkowita = 0;
+                MessageBox.Show("Ostrzeżenie: Brak danych o terminie.", "Ostrzeżenie", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
 
             PotwierdzCommand = new RelayCommand(async _ => await PotwierdzAsync());
             AnulujCommand = new RelayCommand(_ => _closeAction());
         }
 
         // --- Dane do wyświetlenia ---
-        public string NazwaObiektu => _opcja.NazwaObiektu;
-        public string AdresObiektu => _opcja.AdresObiektu;
-        public DateTime DataRezerwacji => _opcja.Slot.Start.Date;
-        public string ZakresGodzin => $"{_opcja.GodzinaStart} - {_opcja.GodzinaKoniec}";
+        public string NazwaObiektu => _opcja?.NazwaObiektu ?? "Nieznany obiekt";
+        public string AdresObiektu => _opcja?.AdresObiektu ?? "Brak adresu";
+        public DateTime DataRezerwacji => _opcja?.Slot?.Start.Date ?? DateTime.Today;
+        public string ZakresGodzin => _opcja?.Slot != null
+            ? $"{_opcja.GodzinaStart} - {_opcja.GodzinaKoniec}"
+            : "Brak danych";
         public decimal CenaCalkowita { get; }
 
         // --- Obsługa Płatności ---
@@ -88,6 +97,19 @@ namespace SRKT.WPF.ViewModels
         {
             try
             {
+                // Walidacja
+                if (_opcja?.Slot == null)
+                {
+                    MessageBox.Show("Błąd: Brak danych o wybranym terminie.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                if (_opcja.Slot.KortId <= 0)
+                {
+                    MessageBox.Show("Błąd: Nieprawidłowy identyfikator kortu.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
                 // Utwórz rezerwację
                 var nowaRezerwacja = await _rezerwacjaService.UtworzRezerwacjeAsync(
                     _opcja.Slot.KortId,
@@ -97,9 +119,26 @@ namespace SRKT.WPF.ViewModels
                     Uwagi
                 );
 
+                if (nowaRezerwacja == null)
+                {
+                    MessageBox.Show("Nie udało się utworzyć rezerwacji.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
                 // Jeśli wybrano płatność BLIK - otwórz okno płatności
                 if (CzyPlatnoscBlik)
                 {
+                    if (_platnoscService == null)
+                    {
+                        MessageBox.Show(
+                            "Rezerwacja została utworzona.\nPłatność BLIK jest chwilowo niedostępna - zapłać na miejscu.",
+                            "Rezerwacja utworzona",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information);
+                        _closeAction();
+                        return;
+                    }
+
                     var blikWindow = new BlikPaymentWindow();
                     blikWindow.Owner = Application.Current.MainWindow;
 

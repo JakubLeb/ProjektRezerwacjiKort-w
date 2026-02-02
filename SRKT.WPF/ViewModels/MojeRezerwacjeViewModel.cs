@@ -12,18 +12,25 @@ namespace SRKT.WPF.ViewModels
         private readonly Uzytkownik _uzytkownik;
         private ObservableCollection<Rezerwacja> _rezerwacje;
         private Rezerwacja _wybranaRezerwacja;
+        private bool _isLoading;
 
         public MojeRezerwacjeViewModel(IRezerwacjaService rezerwacjaService, Uzytkownik uzytkownik)
         {
-            _rezerwacjaService = rezerwacjaService;
-            _uzytkownik = uzytkownik;
+            _rezerwacjaService = rezerwacjaService ?? throw new ArgumentNullException(nameof(rezerwacjaService));
+            _uzytkownik = uzytkownik ?? throw new ArgumentNullException(nameof(uzytkownik));
 
             Rezerwacje = new ObservableCollection<Rezerwacja>();
 
-            ZaladujRezerwacjeCommand = new RelayCommand(async _ => await ZaladujRezerwacjeAsync());
-            AnulujRezerwacjeCommand = new RelayCommand(async _ => await AnulujRezerwacjeAsync(), _ => WybranaRezerwacja != null);
+            ZaladujRezerwacjeCommand = new RelayCommand(async _ => await ZaladujRezerwacjeAsync(), _ => !IsLoading);
+            AnulujRezerwacjeCommand = new RelayCommand(async param => await AnulujRezerwacjeAsync(param as Rezerwacja), _ => !IsLoading);
 
             _ = ZaladujRezerwacjeAsync();
+        }
+
+        public bool IsLoading
+        {
+            get => _isLoading;
+            set => SetProperty(ref _isLoading, value);
         }
 
         public ObservableCollection<Rezerwacja> Rezerwacje
@@ -43,34 +50,61 @@ namespace SRKT.WPF.ViewModels
 
         private async Task ZaladujRezerwacjeAsync()
         {
+            if (IsLoading) return;
+
             try
             {
-                var rezerwacje = await _rezerwacjaService.GetRezerwacjeUzytkownikaAsync(_uzytkownik.Id);
-                Rezerwacje.Clear();
+                IsLoading = true;
 
-                if (rezerwacje != null)
+                var rezerwacje = await _rezerwacjaService.GetRezerwacjeUzytkownikaAsync(_uzytkownik.Id);
+
+                // Aktualizuj na wątku UI
+                Application.Current.Dispatcher.Invoke(() =>
                 {
-                    foreach (var rezerwacja in rezerwacje)
+                    Rezerwacje.Clear();
+
+                    if (rezerwacje != null)
                     {
-                        if (rezerwacja != null)
+                        foreach (var rezerwacja in rezerwacje)
                         {
-                            Rezerwacje.Add(rezerwacja);
+                            if (rezerwacja != null)
+                            {
+                                Rezerwacje.Add(rezerwacja);
+                            }
                         }
                     }
-                }
+                });
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Błąd ładowania rezerwacji: {ex.Message}", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    MessageBox.Show($"Błąd ładowania rezerwacji: {ex.Message}", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+                });
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
 
-        private async Task AnulujRezerwacjeAsync()
+        private async Task AnulujRezerwacjeAsync(Rezerwacja rezerwacja)
         {
-            if (WybranaRezerwacja == null) return;
+            // Jeśli przekazano parametr, użyj go; w przeciwnym razie użyj WybranaRezerwacja
+            var rezerwacjaDoAnulowania = rezerwacja ?? WybranaRezerwacja;
+
+            if (rezerwacjaDoAnulowania == null)
+            {
+                MessageBox.Show("Wybierz rezerwację do anulowania.", "Informacja", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            if (IsLoading) return;
 
             var result = MessageBox.Show(
-                "Czy na pewno chcesz anulować tę rezerwację?",
+                $"Czy na pewno chcesz anulować tę rezerwację?\n\n" +
+                $"Kort: {rezerwacjaDoAnulowania.Kort?.PelnaNazwa ?? "Nieznany"}\n" +
+                $"Data: {rezerwacjaDoAnulowania.DataRezerwacji:dd.MM.yyyy HH:mm}",
                 "Potwierdzenie",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Question
@@ -80,13 +114,22 @@ namespace SRKT.WPF.ViewModels
             {
                 try
                 {
-                    await _rezerwacjaService.AnulujRezerwacjeAsync(WybranaRezerwacja.Id);
+                    IsLoading = true;
+
+                    await _rezerwacjaService.AnulujRezerwacjeAsync(rezerwacjaDoAnulowania.Id);
+
                     MessageBox.Show("Rezerwacja została anulowana.", "Sukces", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                    // Odśwież listę po anulowaniu
                     await ZaladujRezerwacjeAsync();
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show($"Błąd anulowania rezerwacji: {ex.Message}", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                finally
+                {
+                    IsLoading = false;
                 }
             }
         }

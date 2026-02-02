@@ -21,11 +21,11 @@ namespace SRKT.WPF.ViewModels
         // NOWE POLE:
         public decimal CenaZaGodzine { get; set; }
 
-        // Właściwości pomocnicze dla XAML
-        public string GodzinaStart => Slot.Start.ToString("HH:mm");
-        public string GodzinaKoniec => Slot.End.ToString("HH:mm");
-        public bool JestDostepny => Slot.Dostepny;
-        public string Opis => Slot.OpisKortu;
+        // Właściwości pomocnicze dla XAML - z obsługą null
+        public string GodzinaStart => Slot?.Start.ToString("HH:mm") ?? "--:--";
+        public string GodzinaKoniec => Slot?.End.ToString("HH:mm") ?? "--:--";
+        public bool JestDostepny => Slot?.Dostepny ?? false;
+        public string Opis => Slot?.OpisKortu ?? "Brak opisu";
     }
 
     public class DostepneKortyViewModel : BaseViewModel
@@ -55,9 +55,9 @@ namespace SRKT.WPF.ViewModels
             IRezerwacjaService rezerwacjaService,
             Uzytkownik uzytkownik)
         {
-            _kortRepo = kortRepo;
-            _rezerwacjaService = rezerwacjaService;
-            _uzytkownik = uzytkownik;
+            _kortRepo = kortRepo ?? throw new ArgumentNullException(nameof(kortRepo));
+            _rezerwacjaService = rezerwacjaService ?? throw new ArgumentNullException(nameof(rezerwacjaService));
+            _uzytkownik = uzytkownik ?? throw new ArgumentNullException(nameof(uzytkownik));
 
             Korty = new ObservableCollection<Kort>();
             DostepneTerminy = new ObservableCollection<OpcjaRezerwacji>();
@@ -146,9 +146,21 @@ namespace SRKT.WPF.ViewModels
             try
             {
                 var korty = await _kortRepo.GetAktywneKortyAsync();
-                _wszystkieKorty = korty.ToList();
-                var typy = _wszystkieKorty.Select(k => k.TypKortu).Where(t => t != null).GroupBy(t => t.Id).Select(g => g.First()).ToList();
-                var obiekty = _wszystkieKorty.Select(k => k.ObiektSportowy).Where(o => o != null).GroupBy(o => o.Id).Select(g => g.First()).ToList();
+                _wszystkieKorty = korty?.ToList() ?? new List<Kort>();
+
+                var typy = _wszystkieKorty
+                    .Select(k => k.TypKortu)
+                    .Where(t => t != null)
+                    .GroupBy(t => t.Id)
+                    .Select(g => g.First())
+                    .ToList();
+
+                var obiekty = _wszystkieKorty
+                    .Select(k => k.ObiektSportowy)
+                    .Where(o => o != null)
+                    .GroupBy(o => o.Id)
+                    .Select(g => g.First())
+                    .ToList();
 
                 DostepneTypyKortu.Clear();
                 foreach (var typ in typy) DostepneTypyKortu.Add(typ);
@@ -159,7 +171,10 @@ namespace SRKT.WPF.ViewModels
                 ZastosujFiltry();
                 await SzukajTerminowAsync();
             }
-            catch (Exception ex) { MessageBox.Show($"Błąd ładowania danych: {ex.Message}"); }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Błąd ładowania danych: {ex.Message}", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void ZastosujFiltry()
@@ -182,35 +197,43 @@ namespace SRKT.WPF.ViewModels
         {
             if (WybranaData.Date < DateTime.Today)
             {
-                MessageBox.Show("Data z przeszłości.");
+                MessageBox.Show("Nie można wybrać daty z przeszłości.", "Informacja", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
             try
             {
                 DostepneTerminy.Clear();
+
                 IEnumerable<Kort> kortyDoPrzeszukania = (WybranyKort != null)
                     ? new List<Kort> { WybranyKort }
                     : Korty;
+
+                if (!kortyDoPrzeszukania.Any())
+                {
+                    return;
+                }
 
                 var wszystkieOpcje = new List<OpcjaRezerwacji>();
 
                 foreach (var kort in kortyDoPrzeszukania)
                 {
+                    if (kort == null) continue;
+
                     var slotyKortu = await _rezerwacjaService.GetWolneTerminyAsync(
                         kort.Id,
                         WybranaData,
                         WybranaDlugoscSesji
                     );
 
-                    // POPRAWKA: Pomijamy korty bez wolnych terminów
+                    // Pomijamy korty bez wolnych terminów
                     if (slotyKortu == null || !slotyKortu.Any())
                         continue;
 
                     foreach (var slot in slotyKortu)
                     {
-                        // POPRAWKA: Sprawdzamy czy slot jest rzeczywiście dostępny
-                        if (!slot.Dostepny)
+                        // Sprawdzamy czy slot jest rzeczywiście dostępny
+                        if (slot == null || !slot.Dostepny)
                             continue;
 
                         var obiekt = kort.ObiektSportowy;
@@ -237,7 +260,7 @@ namespace SRKT.WPF.ViewModels
                 }
 
                 var przefiltrowane = wszystkieOpcje
-                    .Where(o => o.Slot.Start.Hour >= GodzinaOd && o.Slot.End.Hour <= GodzinaDo)
+                    .Where(o => o.Slot != null && o.Slot.Start.Hour >= GodzinaOd && o.Slot.End.Hour <= GodzinaDo)
                     .OrderBy(o => o.Slot.Start)
                     .ThenBy(o => o.NazwaObiektu)
                     .ThenBy(o => o.Slot.NazwaKortu);
@@ -247,37 +270,76 @@ namespace SRKT.WPF.ViewModels
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Błąd: {ex.Message}");
+                MessageBox.Show($"Błąd wyszukiwania terminów: {ex.Message}", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         private async Task RezerwujAsync(OpcjaRezerwacji opcja)
         {
-            if (opcja == null || !opcja.JestDostepny) return;
-
-            var window = new RezerwacjaWindow();
-
-            // Pobierz serwis płatności z DI
-            var platnoscService = ((App)Application.Current).ServiceProvider
-                .GetService(typeof(IPlatnoscService)) as IPlatnoscService;
-
-            var vm = new RezerwacjaViewModel(
-                opcja,
-                _rezerwacjaService,
-                platnoscService,
-                _uzytkownik,
-                () => window.Close()
-            );
-
-            window.DataContext = vm;
-
-            if (Application.Current.MainWindow != window)
+            // Walidacja
+            if (opcja == null)
             {
-                window.Owner = Application.Current.MainWindow;
+                MessageBox.Show("Nie wybrano terminu do rezerwacji.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
             }
 
-            window.ShowDialog();
-            await SzukajTerminowAsync();
+            if (!opcja.JestDostepny)
+            {
+                MessageBox.Show("Wybrany termin nie jest dostępny.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (opcja.Slot == null)
+            {
+                MessageBox.Show("Brak danych o wybranym terminie.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            try
+            {
+                var window = new RezerwacjaWindow();
+
+                // Pobierz serwis płatności z DI - bezpiecznie
+                IPlatnoscService platnoscService = null;
+                try
+                {
+                    var app = Application.Current as App;
+                    if (app?.ServiceProvider != null)
+                    {
+                        platnoscService = app.ServiceProvider.GetService(typeof(IPlatnoscService)) as IPlatnoscService;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Nie można pobrać IPlatnoscService: {ex.Message}");
+                }
+
+                var vm = new RezerwacjaViewModel(
+                    opcja,
+                    _rezerwacjaService,
+                    platnoscService, // Może być null - obsłużone w RezerwacjaViewModel
+                    _uzytkownik,
+                    () => window.Close()
+                );
+
+                window.DataContext = vm;
+
+                // Bezpieczne ustawienie Owner
+                var mainWindow = Application.Current.MainWindow;
+                if (mainWindow != null && mainWindow != window && mainWindow.IsLoaded)
+                {
+                    window.Owner = mainWindow;
+                }
+
+                window.ShowDialog();
+
+                // Odśwież listę po zamknięciu okna rezerwacji
+                await SzukajTerminowAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Błąd podczas otwierania okna rezerwacji: {ex.Message}", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
-    }
+}

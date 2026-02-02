@@ -4,6 +4,7 @@ using SRKT.Business.Services;
 using SRKT.Core.Models;
 using SRKT.DataAccess;
 using SRKT.DataAccess.Repositories;
+using SRKT.WPF.Services;
 using SRKT.WPF.Views;
 using System.Windows;
 
@@ -12,6 +13,7 @@ namespace SRKT.WPF
     public partial class App : Application
     {
         public IServiceProvider ServiceProvider { get; private set; }
+        private ReminderBackgroundService _reminderService;
 
         protected override void OnStartup(StartupEventArgs e)
         {
@@ -22,17 +24,28 @@ namespace SRKT.WPF
             ConfigureServices(services);
             ServiceProvider = services.BuildServiceProvider();
 
+            // Uruchom serwis sprawdzania przypomnień w tle
+            StartReminderService();
+
             // Uruchom PIERWSZE okno logowania
             var loginWindow1 = ServiceProvider.GetRequiredService<LoginWindow>();
             loginWindow1.Show();
 
-            // Uruchom DRUGIE okno logowania
-            // Ponieważ LoginWindow jest 'Transient', otrzymasz nową instancję
+            // Uruchom DRUGIE okno logowania (opcjonalne - do testów)
             var loginWindow2 = ServiceProvider.GetRequiredService<LoginWindow>();
-            loginWindow2.Title = "Logowanie - Okno 2"; // Opcjonalnie: zmiana tytułu dla rozróżnienia
-            loginWindow2.Left = loginWindow1.Left + 50; // Opcjonalnie: przesunięcie, by nie nakładały się idealnie
+            loginWindow2.Title = "Logowanie - Okno 2";
+            loginWindow2.Left = loginWindow1.Left + 50;
             loginWindow2.Top = loginWindow1.Top + 50;
             loginWindow2.Show();
+        }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            // Zatrzymaj serwis przypomnień
+            _reminderService?.Stop();
+            _reminderService?.Dispose();
+
+            base.OnExit(e);
         }
 
         private void ConfigureServices(IServiceCollection services)
@@ -51,9 +64,7 @@ namespace SRKT.WPF
             services.AddScoped<IRezerwacjaService, RezerwacjaService>();
             services.AddScoped<IPlatnoscService, PlatnoscService>();
 
-            // Serwis przypomnień
-
-            services.AddScoped<IPrzypomnienieService, PrzypomnienieService>();
+            // Serwisy powiadomień i przypomnień
             services.AddScoped<IRepository<Przypomnienie>, Repository<Przypomnienie>>();
             services.AddScoped<IPowiadomienieService, PowiadomienieService>();
             services.AddScoped<IPrzypomnienieService, PrzypomnienieService>();
@@ -69,6 +80,26 @@ namespace SRKT.WPF
                 var powiadomienieService = sp.GetRequiredService<IPowiadomienieService>();
                 return new MainWindow(kortRepo, rezerwacjaService, uzytkownikRepo, powiadomienieService);
             });
+        }
+
+        /// <summary>
+        /// Uruchamia serwis sprawdzania przypomnień w tle
+        /// </summary>
+        private void StartReminderService()
+        {
+            try
+            {
+                var przypomnienieService = ServiceProvider.GetService<IPrzypomnienieService>();
+                if (przypomnienieService != null)
+                {
+                    _reminderService = new ReminderBackgroundService(przypomnienieService);
+                    _reminderService.Start();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Błąd uruchamiania serwisu przypomnień: {ex.Message}");
+            }
         }
     }
 }

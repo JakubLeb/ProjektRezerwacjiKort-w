@@ -4,7 +4,7 @@ using SRKT.DataAccess.Repositories;
 namespace SRKT.Business.Services
 {
     /// <summary>
-    /// Implementacja serwisu przypomnień
+    /// Implementacja serwisu przypomnień z obsługą natywnych powiadomień Windows
     /// </summary>
     public class PrzypomnienieService : IPrzypomnienieService
     {
@@ -26,10 +26,10 @@ namespace SRKT.Business.Services
         }
 
         public async Task<Przypomnienie> UtworzPrzypomnienieAsync(
-            int rezerwacjaId, 
-            int uzytkownikId, 
-            DateTime dataPrzypomnienia, 
-            string tytul, 
+            int rezerwacjaId,
+            int uzytkownikId,
+            DateTime dataPrzypomnienia,
+            string tytul,
             string tresc)
         {
             var przypomnienie = new Przypomnienie
@@ -54,7 +54,7 @@ namespace SRKT.Business.Services
                 return null;
 
             var dataPrzypomnienia = rezerwacja.DataRezerwacji.AddMinutes(-minutPrzed);
-            
+
             // Nie twórz przypomnienia jeśli data już minęła
             if (dataPrzypomnienia <= DateTime.Now)
                 return null;
@@ -80,9 +80,9 @@ namespace SRKT.Business.Services
 
         public async Task<IEnumerable<Przypomnienie>> GetAktywnePrzypomnieniAsync(int uzytkownikId)
         {
-            var aktywne = await _przypomnienieRepo.FindAsync(p => 
-                p.UzytkownikId == uzytkownikId && 
-                p.CzyAktywne && 
+            var aktywne = await _przypomnienieRepo.FindAsync(p =>
+                p.UzytkownikId == uzytkownikId &&
+                p.CzyAktywne &&
                 !p.CzyWyslane);
             return aktywne.OrderBy(p => p.DataPrzypomnienia);
         }
@@ -90,9 +90,9 @@ namespace SRKT.Business.Services
         public async Task<IEnumerable<Przypomnienie>> GetPrzypomnieniaDowyslaniaAsync()
         {
             var teraz = DateTime.Now;
-            var doWyslania = await _przypomnienieRepo.FindAsync(p => 
-                p.CzyAktywne && 
-                !p.CzyWyslane && 
+            var doWyslania = await _przypomnienieRepo.FindAsync(p =>
+                p.CzyAktywne &&
+                !p.CzyWyslane &&
                 p.DataPrzypomnienia <= teraz);
             return doWyslania;
         }
@@ -103,9 +103,9 @@ namespace SRKT.Business.Services
         }
 
         public async Task<bool> AktualizujPrzypomnienieAsync(
-            int przypomnienieId, 
-            DateTime nowaData, 
-            string nowyTytul, 
+            int przypomnienieId,
+            DateTime nowaData,
+            string nowyTytul,
             string nowaTresc)
         {
             try
@@ -185,12 +185,15 @@ namespace SRKT.Business.Services
             {
                 try
                 {
-                    // Wyślij powiadomienie wszystkimi kanałami
-                    await _powiadomienieService.WyslijPowiadomienieWszystkimiKanalamiAsync(
-                        przypomnienie.UzytkownikId,
-                        przypomnienie.Tytul,
-                        przypomnienie.Tresc,
-                        przypomnienie.RezerwacjaId);
+                    // Wyślij powiadomienie wszystkimi kanałami (w tym natywny Windows Toast)
+                    if (_powiadomienieService != null)
+                    {
+                        await _powiadomienieService.WyslijPowiadomienieWszystkimiKanalamiAsync(
+                            przypomnienie.UzytkownikId,
+                            przypomnienie.Tytul,
+                            przypomnienie.Tresc,
+                            przypomnienie.RezerwacjaId);
+                    }
 
                     // Oznacz jako wysłane
                     await OznaczJakoWyslaneAsync(przypomnienie.Id);

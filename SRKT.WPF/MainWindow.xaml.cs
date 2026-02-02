@@ -2,17 +2,19 @@
 using SRKT.Business.Services;
 using SRKT.Core.Models;
 using SRKT.DataAccess.Repositories;
-using SRKT.WPF.Services;
 using SRKT.WPF.ViewModels;
-using System;
+using SRKT.WPF.Views;
 using System.Windows;
 
 namespace SRKT.WPF
 {
     public partial class MainWindow : Window
     {
-        private readonly MainViewModel _viewModel;
-        private PrzypomnienieBackgroundService _przypomnienieBackgroundService;
+        private readonly IKortRepository _kortRepo;
+        private readonly IRezerwacjaService _rezerwacjaService;
+        private readonly IRepository<Uzytkownik> _uzytkownikRepo;
+        private readonly IPowiadomienieService _powiadomienieService;
+        private MainViewModel _viewModel;
 
         public MainWindow(
             IKortRepository kortRepo,
@@ -22,84 +24,67 @@ namespace SRKT.WPF
         {
             InitializeComponent();
 
-            // Pobierz serwis przypomnień z DI
-            var przypomnienieService = ((App)Application.Current).ServiceProvider
-                .GetService(typeof(IPrzypomnienieService)) as IPrzypomnienieService;
+            _kortRepo = kortRepo;
+            _rezerwacjaService = rezerwacjaService;
+            _uzytkownikRepo = uzytkownikRepo;
+            _powiadomienieService = powiadomienieService;
 
-            _viewModel = new MainViewModel(
-                kortRepo,
-                rezerwacjaService,
-                uzytkownikRepo,
-                przypomnienieService,
-                powiadomienieService);
-
-            _viewModel.LogoutRequested += OnLogoutRequested;
-
-            DataContext = _viewModel;
-
-            // Inicjalizuj ToastManager z kontenerem
-            ToastManager.Instance.Initialize(ToastContainer);
-
-            // Pokaż domyślny widok
-            _viewModel.PokazDostepneKortyCommand.Execute(null);
+            // NIE tworzymy jeszcze ViewModelu - czekamy na SetUzytkownik
         }
 
+        /// <summary>
+        /// Ustawia zalogowanego użytkownika i inicjalizuje ViewModel
+        /// </summary>
         public void SetUzytkownik(Uzytkownik uzytkownik)
         {
-            _viewModel.AktualnyUzytkownik = uzytkownik;
+            if (uzytkownik == null)
+            {
+                MessageBox.Show("Błąd: Nie przekazano danych użytkownika.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+                Close();
+                return;
+            }
 
-            // Uruchom serwis sprawdzania przypomnień
-            StartPrzypomnienieService(uzytkownik.Id);
-
-            // Wyświetl toast powitalny
-            ToastManager.Instance.ShowSuccess(
-                "Witaj!",
-                $"Zalogowano jako {uzytkownik.PelneImieNazwisko}");
-        }
-
-        private void StartPrzypomnienieService(int uzytkownikId)
-        {
+            // Pobierz serwis przypomnień z DI
+            IPrzypomnienieService przypomnienieService = null;
             try
             {
-                var serviceProvider = ((App)Application.Current).ServiceProvider;
-                var przypomnienieService = serviceProvider.GetService(typeof(IPrzypomnienieService)) as IPrzypomnienieService;
-                var powiadomienieService = serviceProvider.GetService(typeof(IPowiadomienieService)) as IPowiadomienieService;
-
-                if (przypomnienieService != null && powiadomienieService != null)
+                var app = Application.Current as App;
+                if (app?.ServiceProvider != null)
                 {
-                    _przypomnienieBackgroundService = new PrzypomnienieBackgroundService(
-                        przypomnienieService,
-                        powiadomienieService,
-                        uzytkownikId);
-
-                    _przypomnienieBackgroundService.Start();
+                    przypomnienieService = app.ServiceProvider.GetService(typeof(IPrzypomnienieService)) as IPrzypomnienieService;
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Błąd uruchamiania serwisu przypomnień: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Nie można pobrać IPrzypomnienieService: {ex.Message}");
             }
-        }
 
-        private void OnLogoutRequested(object sender, EventArgs e)
-        {
-            // Zatrzymaj serwis przypomnień
-            _przypomnienieBackgroundService?.Stop();
-            _przypomnienieBackgroundService?.Dispose();
+            // Teraz tworzymy ViewModel z użytkownikiem
+            _viewModel = new MainViewModel(
+                _kortRepo,
+                _rezerwacjaService,
+                _uzytkownikRepo,
+                przypomnienieService,
+                _powiadomienieService);
 
-            var serviceProvider = ((App)Application.Current).ServiceProvider;
-            var loginWindow = serviceProvider.GetRequiredService<Views.LoginWindow>();
-            loginWindow.Show();
-            this.Close();
-        }
+            _viewModel.AktualnyUzytkownik = uzytkownik;
 
-        protected override void OnClosed(EventArgs e)
-        {
-            // Zatrzymaj serwis przy zamykaniu okna
-            _przypomnienieBackgroundService?.Stop();
-            _przypomnienieBackgroundService?.Dispose();
+            // Obsługa wylogowania
+            _viewModel.LogoutRequested += (s, e) =>
+            {
+                var app = Application.Current as App;
+                if (app?.ServiceProvider != null)
+                {
+                    var loginWindow = app.ServiceProvider.GetRequiredService<LoginWindow>();
+                    loginWindow.Show();
+                }
+                Close();
+            };
 
-            base.OnClosed(e);
+            DataContext = _viewModel;
+
+            // Pokaż domyślny widok PO ustawieniu użytkownika
+            _viewModel.PokazDostepneKortyCommand.Execute(null);
         }
     }
 }

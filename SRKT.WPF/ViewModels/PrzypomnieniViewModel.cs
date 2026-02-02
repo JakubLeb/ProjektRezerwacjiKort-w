@@ -226,6 +226,7 @@ namespace SRKT.WPF.ViewModels
 
                 if (dialog.ShowDialog() == true)
                 {
+                    // Odśwież listę po dodaniu
                     await ZaladujPrzypomnieniAsync();
                     MessageBox.Show("Przypomnienie zostało dodane!", "Sukces", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
@@ -260,6 +261,7 @@ namespace SRKT.WPF.ViewModels
 
                 if (dialog.ShowDialog() == true)
                 {
+                    // Odśwież listę po edycji
                     await ZaladujPrzypomnieniAsync();
                     MessageBox.Show("Przypomnienie zostało zaktualizowane!", "Sukces", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
@@ -291,9 +293,12 @@ namespace SRKT.WPF.ViewModels
                 {
                     IsLoading = true;
                     var sukces = await _przypomnienieService.AnulujPrzypomnienieAsync(przypomnienie.Id);
+
                     if (sukces)
                     {
+                        // Odśwież listę po anulowaniu
                         await ZaladujPrzypomnieniAsync();
+                        MessageBox.Show("Przypomnienie zostało anulowane.", "Sukces", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                     else
                     {
@@ -329,9 +334,12 @@ namespace SRKT.WPF.ViewModels
                 {
                     IsLoading = true;
                     var sukces = await _przypomnienieService.UsunPrzypomnienieAsync(przypomnienie.Id);
+
                     if (sukces)
                     {
+                        // Odśwież listę po usunięciu
                         await ZaladujPrzypomnieniAsync();
+                        MessageBox.Show("Przypomnienie zostało usunięte.", "Sukces", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                     else
                     {

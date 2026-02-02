@@ -38,8 +38,11 @@ namespace SRKT.Business.Services
 
             // Pobierz kort dla ceny
             var kort = await _kortRepo.GetByIdAsync(kortId);
-            if (kort == null || !kort.CzyAktywny)
-                throw new Exception("Kort nie istnieje lub jest nieaktywny.");
+            if (kort == null)
+                throw new Exception("Kort nie istnieje.");
+
+            if (!kort.CzyAktywny)
+                throw new Exception("Kort jest nieaktywny.");
 
             // Utwórz rezerwację
             var rezerwacja = new Rezerwacja
@@ -57,12 +60,22 @@ namespace SRKT.Business.Services
 
             var nowaRezerwacja = await _rezerwacjaRepo.AddAsync(rezerwacja);
 
-            // Wyślij powiadomienie
-            await _powiadomienieService.WyslijPowiadomienieDlaRezerwacjiAsync(
-                nowaRezerwacja.Id,
-                "Nowa rezerwacja",
-                $"Twoja rezerwacja na {dataRezerwacji:dd.MM.yyyy HH:mm} została utworzona."
-            );
+            // Wyślij powiadomienie (z obsługą null)
+            if (_powiadomienieService != null)
+            {
+                try
+                {
+                    await _powiadomienieService.WyslijPowiadomienieDlaRezerwacjiAsync(
+                        nowaRezerwacja.Id,
+                        "Nowa rezerwacja",
+                        $"Twoja rezerwacja na {dataRezerwacji:dd.MM.yyyy HH:mm} została utworzona."
+                    );
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Błąd wysyłania powiadomienia: {ex.Message}");
+                }
+            }
 
             return nowaRezerwacja;
         }
@@ -77,11 +90,21 @@ namespace SRKT.Business.Services
             rezerwacja.DataModyfikacji = DateTime.Now;
             await _rezerwacjaRepo.UpdateAsync(rezerwacja);
 
-            await _powiadomienieService.WyslijPowiadomienieDlaRezerwacjiAsync(
-                rezerwacjaId,
-                "Rezerwacja anulowana",
-                "Twoja rezerwacja została anulowana."
-            );
+            if (_powiadomienieService != null)
+            {
+                try
+                {
+                    await _powiadomienieService.WyslijPowiadomienieDlaRezerwacjiAsync(
+                        rezerwacjaId,
+                        "Rezerwacja anulowana",
+                        "Twoja rezerwacja została anulowana."
+                    );
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Błąd wysyłania powiadomienia: {ex.Message}");
+                }
+            }
 
             return true;
         }
@@ -96,11 +119,21 @@ namespace SRKT.Business.Services
             rezerwacja.DataModyfikacji = DateTime.Now;
             await _rezerwacjaRepo.UpdateAsync(rezerwacja);
 
-            await _powiadomienieService.WyslijPowiadomienieDlaRezerwacjiAsync(
-                rezerwacjaId,
-                "Rezerwacja potwierdzona",
-                "Twoja rezerwacja została potwierdzona."
-            );
+            if (_powiadomienieService != null)
+            {
+                try
+                {
+                    await _powiadomienieService.WyslijPowiadomienieDlaRezerwacjiAsync(
+                        rezerwacjaId,
+                        "Rezerwacja potwierdzona",
+                        "Twoja rezerwacja została potwierdzona."
+                    );
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Błąd wysyłania powiadomienia: {ex.Message}");
+                }
+            }
 
             return true;
         }
@@ -123,11 +156,21 @@ namespace SRKT.Business.Services
             await _rezerwacjaRepo.UpdateAsync(rezerwacja);
 
             // Wyślij powiadomienie do klienta
-            await _powiadomienieService.WyslijPowiadomienieDlaRezerwacjiAsync(
-                rezerwacjaId,
-                "Płatność przyjęta",
-                $"Płatność za rezerwację na {rezerwacja.DataRezerwacji:dd.MM.yyyy HH:mm} została przyjęta. Dziękujemy!"
-            );
+            if (_powiadomienieService != null)
+            {
+                try
+                {
+                    await _powiadomienieService.WyslijPowiadomienieDlaRezerwacjiAsync(
+                        rezerwacjaId,
+                        "Płatność przyjęta",
+                        $"Płatność za rezerwację na {rezerwacja.DataRezerwacji:dd.MM.yyyy HH:mm} została przyjęta. Dziękujemy!"
+                    );
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Błąd wysyłania powiadomienia: {ex.Message}");
+                }
+            }
 
             return true;
         }
@@ -147,9 +190,18 @@ namespace SRKT.Business.Services
 
         public async Task<IEnumerable<TimeSlot>> GetWolneTerminyAsync(int kortId, DateTime data, decimal dlugoscSesji)
         {
+            // Pobierz kort z pełnymi danymi
             var kort = await _kortRepo.GetByIdAsync(kortId);
-            string nazwaKortu = kort?.Nazwa ?? "Nieznany";
-            string opisKortu = kort != null ? $"{kort.Nazwa} - {kort.TypKortu?.Nazwa ?? ""}" : "Nieznany";
+
+            // WALIDACJA: Sprawdź czy kort istnieje
+            if (kort == null)
+            {
+                System.Diagnostics.Debug.WriteLine($"GetWolneTerminyAsync: Kort o ID {kortId} nie istnieje.");
+                return Enumerable.Empty<TimeSlot>();
+            }
+
+            string nazwaKortu = kort.Nazwa ?? "Nieznany";
+            string opisKortu = $"{kort.Nazwa ?? "Nieznany"} - {kort.TypKortu?.Nazwa ?? "Brak typu"}";
 
             var rezerwacje = await _rezerwacjaRepo.GetRezerwacjeByKortAsync(kortId, data);
             var slots = new List<TimeSlot>();

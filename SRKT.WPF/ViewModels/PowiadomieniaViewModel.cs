@@ -14,6 +14,7 @@ namespace SRKT.WPF.ViewModels
         private ObservableCollection<Powiadomienie> _powiadomienia;
         private ObservableCollection<Powiadomienie> _powiadomieniaFiltrowane;
         private int _liczbaNieprzeczytanych;
+        private bool _isLoading;
 
         // Filtry
         private bool _filtrWszystkie = true;
@@ -23,23 +24,29 @@ namespace SRKT.WPF.ViewModels
 
         public PowiadomieniaViewModel(IPowiadomienieService powiadomienieService, Uzytkownik uzytkownik)
         {
-            _powiadomienieService = powiadomienieService;
-            _uzytkownik = uzytkownik;
+            _powiadomienieService = powiadomienieService ?? throw new ArgumentNullException(nameof(powiadomienieService));
+            _uzytkownik = uzytkownik ?? throw new ArgumentNullException(nameof(uzytkownik));
 
             Powiadomienia = new ObservableCollection<Powiadomienie>();
             PowiadomieniaFiltrowane = new ObservableCollection<Powiadomienie>();
 
             // Komendy
-            OdswiezCommand = new RelayCommand(async _ => await ZaladujPowiadomieniaAsync());
-            OznaczWszystkieCommand = new RelayCommand(async _ => await OznaczWszystkieJakoPrzeczytaneAsync());
-            OznaczJakoPrzeczytaneCommand = new RelayCommand(async param => await OznaczJakoPrzeczytaneAsync(param as Powiadomienie));
-            UsunPowiadomienieCommand = new RelayCommand(async param => await UsunPowiadomienieAsync(param as Powiadomienie));
+            OdswiezCommand = new RelayCommand(async _ => await ZaladujPowiadomieniaAsync(), _ => !IsLoading);
+            OznaczWszystkieCommand = new RelayCommand(async _ => await OznaczWszystkieJakoPrzeczytaneAsync(), _ => !IsLoading);
+            OznaczJakoPrzeczytaneCommand = new RelayCommand(async param => await OznaczJakoPrzeczytaneAsync(param as Powiadomienie), _ => !IsLoading);
+            UsunPowiadomienieCommand = new RelayCommand(async param => await UsunPowiadomienieAsync(param as Powiadomienie), _ => !IsLoading);
 
             // Załaduj dane
             _ = ZaladujPowiadomieniaAsync();
         }
 
         #region Właściwości
+
+        public bool IsLoading
+        {
+            get => _isLoading;
+            set => SetProperty(ref _isLoading, value);
+        }
 
         public ObservableCollection<Powiadomienie> Powiadomienia
         {
@@ -133,62 +140,97 @@ namespace SRKT.WPF.ViewModels
 
         private async Task ZaladujPowiadomieniaAsync()
         {
+            if (IsLoading) return;
+
             try
             {
+                IsLoading = true;
+
                 var powiadomienia = await _powiadomienieService.GetPowiadomieniaUzytkownikaAsync(_uzytkownik.Id);
 
-                Powiadomienia.Clear();
-                foreach (var p in powiadomienia.OrderByDescending(x => x.DataUtworzenia))
+                // Aktualizuj na wątku UI
+                Application.Current.Dispatcher.Invoke(() =>
                 {
-                    Powiadomienia.Add(p);
-                }
+                    Powiadomienia.Clear();
+                    if (powiadomienia != null)
+                    {
+                        foreach (var p in powiadomienia.OrderByDescending(x => x.DataUtworzenia))
+                        {
+                            Powiadomienia.Add(p);
+                        }
+                    }
 
-                // Policz nieprzeczytane
-                LiczbaNieprzeczytanych = await _powiadomienieService.GetLiczbaNieprzeczytanychAsync(_uzytkownik.Id);
+                    // Policz nieprzeczytane
+                    LiczbaNieprzeczytanych = Powiadomienia.Count(p =>
+                        p.StatusPowiadomieniaId == (int)StatusPowiadomieniaEnum.Wyslane ||
+                        p.StatusPowiadomieniaId == (int)StatusPowiadomieniaEnum.Oczekujace);
 
-                // Filtruj
-                FiltrujPowiadomienia();
+                    // Filtruj
+                    FiltrujPowiadomienia();
+                });
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Błąd ładowania powiadomień: {ex.Message}");
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    MessageBox.Show($"Błąd ładowania powiadomień: {ex.Message}",
+                        "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+                });
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
 
         private void FiltrujPowiadomienia()
         {
-            IEnumerable<Powiadomienie> przefiltrowane = Powiadomienia;
+            try
+            {
+                IEnumerable<Powiadomienie> przefiltrowane = Powiadomienia ?? Enumerable.Empty<Powiadomienie>();
 
-            if (FiltrNieprzeczytane)
-            {
-                przefiltrowane = przefiltrowane.Where(p =>
-                    p.StatusPowiadomieniaId == (int)StatusPowiadomieniaEnum.Wyslane ||
-                    p.StatusPowiadomieniaId == (int)StatusPowiadomieniaEnum.Oczekujace);
-            }
-            else if (FiltrEmail)
-            {
-                przefiltrowane = przefiltrowane.Where(p => p.TypPowiadomieniaId == (int)TypPowiadomieniaEnum.Email);
-            }
-            else if (FiltrSystemowe)
-            {
-                przefiltrowane = przefiltrowane.Where(p => p.TypPowiadomieniaId == (int)TypPowiadomieniaEnum.Systemowe);
-            }
-            // FiltrWszystkie = brak filtrowania
+                if (FiltrNieprzeczytane)
+                {
+                    przefiltrowane = przefiltrowane.Where(p =>
+                        p.StatusPowiadomieniaId == (int)StatusPowiadomieniaEnum.Wyslane ||
+                        p.StatusPowiadomieniaId == (int)StatusPowiadomieniaEnum.Oczekujace);
+                }
+                else if (FiltrEmail)
+                {
+                    przefiltrowane = przefiltrowane.Where(p => p.TypPowiadomieniaId == (int)TypPowiadomieniaEnum.Email);
+                }
+                else if (FiltrSystemowe)
+                {
+                    przefiltrowane = przefiltrowane.Where(p => p.TypPowiadomieniaId == (int)TypPowiadomieniaEnum.Systemowe);
+                }
+                // FiltrWszystkie = brak filtrowania
 
-            PowiadomieniaFiltrowane.Clear();
-            foreach (var p in przefiltrowane)
-            {
-                PowiadomieniaFiltrowane.Add(p);
-            }
+                PowiadomieniaFiltrowane.Clear();
+                foreach (var p in przefiltrowane)
+                {
+                    PowiadomieniaFiltrowane.Add(p);
+                }
 
-            OnPropertyChanged(nameof(BrakPowiadomien));
+                OnPropertyChanged(nameof(BrakPowiadomien));
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Błąd filtrowania: {ex.Message}");
+            }
         }
 
         private async Task OznaczWszystkieJakoPrzeczytaneAsync()
         {
+            if (IsLoading) return;
+
             try
             {
+                IsLoading = true;
+
                 await _powiadomienieService.OznaczWszystkieJakoPrzeczytaneAsync(_uzytkownik.Id);
+
+                // Odśwież listę
                 await ZaladujPowiadomieniaAsync();
 
                 MessageBox.Show("Wszystkie powiadomienia zostały oznaczone jako przeczytane.",
@@ -198,11 +240,15 @@ namespace SRKT.WPF.ViewModels
             {
                 MessageBox.Show($"Błąd: {ex.Message}", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+            finally
+            {
+                IsLoading = false;
+            }
         }
 
         private async Task OznaczJakoPrzeczytaneAsync(Powiadomienie powiadomienie)
         {
-            if (powiadomienie == null) return;
+            if (powiadomienie == null || IsLoading) return;
 
             // Sprawdź czy już przeczytane
             if (powiadomienie.StatusPowiadomieniaId == (int)StatusPowiadomieniaEnum.Przeczytane)
@@ -210,18 +256,26 @@ namespace SRKT.WPF.ViewModels
 
             try
             {
+                IsLoading = true;
+
                 await _powiadomienieService.OznaczJakoPrzeczytaneAsync(powiadomienie.Id);
+
+                // Odśwież listę
                 await ZaladujPowiadomieniaAsync();
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Błąd oznaczania: {ex.Message}");
             }
+            finally
+            {
+                IsLoading = false;
+            }
         }
 
         private async Task UsunPowiadomienieAsync(Powiadomienie powiadomienie)
         {
-            if (powiadomienie == null) return;
+            if (powiadomienie == null || IsLoading) return;
 
             var result = MessageBox.Show(
                 "Czy na pewno chcesz usunąć to powiadomienie?",
@@ -233,12 +287,22 @@ namespace SRKT.WPF.ViewModels
             {
                 try
                 {
+                    IsLoading = true;
+
                     await _powiadomienieService.UsunPowiadomienieAsync(powiadomienie.Id);
+
+                    // Odśwież listę
                     await ZaladujPowiadomieniaAsync();
+
+                    MessageBox.Show("Powiadomienie zostało usunięte.", "Sukces", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show($"Błąd usuwania: {ex.Message}", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                finally
+                {
+                    IsLoading = false;
                 }
             }
         }

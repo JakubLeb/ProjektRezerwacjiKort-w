@@ -7,26 +7,21 @@ using System.Windows;
 namespace SRKT.WPF.Services
 {
     /// <summary>
-    /// Serwis działający w tle, sprawdzający przypomnienia do wysłania
+    /// Serwis działający w tle, który sprawdza i wysyła zaległe przypomnienia
     /// </summary>
-    public class PrzypomnienieBackgroundService : IDisposable
+    public class ReminderBackgroundService : IDisposable
     {
         private readonly IPrzypomnienieService _przypomnienieService;
-        private readonly IPowiadomienieService _powiadomienieService;
-        private readonly int _uzytkownikId;
-
         private Timer _timer;
         private bool _isRunning;
-        private readonly int _intervalSeconds = 30; // Sprawdzaj co 30 sekund
+        private readonly object _lock = new object();
 
-        public PrzypomnienieBackgroundService(
-            IPrzypomnienieService przypomnienieService,
-            IPowiadomienieService powiadomienieService,
-            int uzytkownikId)
+        // Interwał sprawdzania (domyślnie co 1 minutę)
+        private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(1);
+
+        public ReminderBackgroundService(IPrzypomnienieService przypomnienieService)
         {
-            _przypomnienieService = przypomnienieService;
-            _powiadomienieService = powiadomienieService;
-            _uzytkownikId = uzytkownikId;
+            _przypomnienieService = przypomnienieService ?? throw new ArgumentNullException(nameof(przypomnienieService));
         }
 
         /// <summary>
@@ -34,15 +29,19 @@ namespace SRKT.WPF.Services
         /// </summary>
         public void Start()
         {
-            if (_isRunning) return;
+            lock (_lock)
+            {
+                if (_isRunning) return;
 
-            _isRunning = true;
-            _timer = new Timer(async _ => await SprawdzPrzypomnieniAsync(),
-                              null,
-                              TimeSpan.Zero,
-                              TimeSpan.FromSeconds(_intervalSeconds));
+                _timer = new Timer(
+                    callback: async _ => await SprawdzPrzypomnieniAsync(),
+                    state: null,
+                    dueTime: TimeSpan.Zero, // Uruchom natychmiast
+                    period: _checkInterval);
 
-            System.Diagnostics.Debug.WriteLine($"[PrzypomnienieBackgroundService] Uruchomiono dla użytkownika {_uzytkownikId}");
+                _isRunning = true;
+                System.Diagnostics.Debug.WriteLine("ReminderBackgroundService: Uruchomiono serwis sprawdzania przypomnień.");
+            }
         }
 
         /// <summary>
@@ -50,51 +49,42 @@ namespace SRKT.WPF.Services
         /// </summary>
         public void Stop()
         {
-            _isRunning = false;
-            _timer?.Change(Timeout.Infinite, Timeout.Infinite);
-            _timer?.Dispose();
-            _timer = null;
+            lock (_lock)
+            {
+                if (!_isRunning) return;
 
-            System.Diagnostics.Debug.WriteLine("[PrzypomnienieBackgroundService] Zatrzymano");
+                _timer?.Change(Timeout.Infinite, Timeout.Infinite);
+                _timer?.Dispose();
+                _timer = null;
+                _isRunning = false;
+
+                System.Diagnostics.Debug.WriteLine("ReminderBackgroundService: Zatrzymano serwis sprawdzania przypomnień.");
+            }
         }
 
+        /// <summary>
+        /// Sprawdza i wysyła zaległe przypomnienia
+        /// </summary>
         private async Task SprawdzPrzypomnieniAsync()
         {
             try
             {
-                // Pobierz przypomnienia do wysłania
-                var przypomnienia = await _przypomnienieService.GetPrzypomnieniaDowyslaniaAsync();
+                if (_przypomnienieService == null) return;
 
-                foreach (var przypomnienie in przypomnienia)
-                {
-                    // Sprawdź czy przypomnienie dotyczy aktualnego użytkownika
-                    if (przypomnienie.UzytkownikId != _uzytkownikId)
-                        continue;
-
-                    // Wyświetl Toast
-                    Application.Current.Dispatcher.Invoke(() =>
-                    {
-                        ToastManager.Instance.ShowInfo(przypomnienie.Tytul, przypomnienie.Tresc);
-                    });
-
-                    // Wyślij powiadomienie systemowe
-                    await _powiadomienieService.WyslijPowiadomienieAsync(
-                        przypomnienie.UzytkownikId,
-                        przypomnienie.Tytul,
-                        przypomnienie.Tresc,
-                        TypPowiadomieniaEnum.Systemowe,
-                        przypomnienie.RezerwacjaId);
-
-                    // Oznacz jako wysłane
-                    await _przypomnienieService.OznaczJakoWyslaneAsync(przypomnienie.Id);
-
-                    System.Diagnostics.Debug.WriteLine($"[PrzypomnienieBackgroundService] Wysłano przypomnienie: {przypomnienie.Tytul}");
-                }
+                await _przypomnienieService.SprawdzIWyslijPrzypomnieniAsync();
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"[PrzypomnienieBackgroundService] Błąd: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"ReminderBackgroundService: Błąd sprawdzania przypomnień: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// Wymusza natychmiastowe sprawdzenie przypomnień
+        /// </summary>
+        public async Task ForceCheckAsync()
+        {
+            await SprawdzPrzypomnieniAsync();
         }
 
         public void Dispose()
