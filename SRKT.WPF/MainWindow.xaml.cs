@@ -2,6 +2,7 @@
 using SRKT.Business.Services;
 using SRKT.Core.Models;
 using SRKT.DataAccess.Repositories;
+using SRKT.WPF.Services;
 using SRKT.WPF.ViewModels;
 using SRKT.WPF.Views;
 using System.Windows;
@@ -28,6 +29,7 @@ namespace SRKT.WPF
             _rezerwacjaService = rezerwacjaService;
             _uzytkownikRepo = uzytkownikRepo;
             _powiadomienieService = powiadomienieService;
+            InAppToastService.Instance.Initialize(ToastContainer);
 
             // NIE tworzymy jeszcze ViewModelu - czekamy na SetUzytkownik
         }

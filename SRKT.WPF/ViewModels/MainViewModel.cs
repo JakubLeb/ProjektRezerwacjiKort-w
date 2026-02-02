@@ -42,7 +42,10 @@ namespace SRKT.WPF.ViewModels
             PokazUstawieniaPowiadomienCommand = new RelayCommand(_ => PokazUstawieniaPowiadomien());
             WylogujCommand = new RelayCommand(_ => Wyloguj());
 
-
+            if (_powiadomienieService != null)
+            {
+                _powiadomienieService.NowePowiadomienieToast += OnNowePowiadomienieToast;
+            }
             // NIE pokazujemy domyślnego widoku tutaj - czekamy na ustawienie użytkownika
         }
 
@@ -293,13 +296,18 @@ namespace SRKT.WPF.ViewModels
             }
         }
 
-        private void OnNowePowiadomienieToast(object sender, Powiadomienie powiadomienie)
+        private void OnNowePowiadomienieToast(object sender, PowiadomienieEventArgs e)
         {
-            if (powiadomienie?.UzytkownikId == AktualnyUzytkownik?.Id)
+            if (e?.UzytkownikId == AktualnyUzytkownik?.Id)
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    ToastManager.Instance.ShowInfo(powiadomienie.Tytul, powiadomienie.Tresc);
+                    // Windows Toast (prawy dolny róg ekranu)
+                    ToastManager.Instance.ShowInfo(e.Tytul, e.Tresc);
+
+                    // In-App Toast (prawy górny róg aplikacji)
+                    InAppToastService.Instance.ShowInfo(e.Tytul, e.Tresc);
+
                     _ = ZaladujLiczbeNieprzeczytanychAsync();
                 });
             }

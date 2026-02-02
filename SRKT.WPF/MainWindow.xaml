@@ -90,7 +90,7 @@
 
                 <Button Command="{Binding PokazUstawieniaPowiadomienCommand}"
                        Style="{StaticResource MenuButtonStyle}"
-                       Margin="0">
+                       Margin="0,5">
                     <Grid Width="170">
                         <TextBlock Text="Ustawienia powiadomień" 
                                   HorizontalAlignment="Center"

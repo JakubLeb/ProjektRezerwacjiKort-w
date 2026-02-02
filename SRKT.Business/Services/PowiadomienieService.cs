@@ -34,7 +34,6 @@ namespace SRKT.Business.Services
             if (rezerwacja == null)
                 return;
 
-            // Wysyłamy powiadomienie systemowe (widoczne w aplikacji)
             await WyslijPowiadomienieAsync(
                 rezerwacja.UzytkownikId,
                 tytul,
@@ -42,13 +41,7 @@ namespace SRKT.Business.Services
                 TypPowiadomieniaEnum.Systemowe,
                 rezerwacjaId);
 
-            // Dodatkowo wysyłamy natywny Windows Toast
-            await WyslijPowiadomienieAsync(
-                rezerwacja.UzytkownikId,
-                tytul,
-                tresc,
-                TypPowiadomieniaEnum.Push,
-                rezerwacjaId);
+
         }
 
         public async Task WyslijPowiadomienieEmailAsync(int uzytkownikId, string tytul, string tresc)
@@ -99,7 +92,8 @@ namespace SRKT.Business.Services
                         break;
 
                     case TypPowiadomieniaEnum.Systemowe:
-                        sukces = true; // Systemowe = zapis do bazy
+                        sukces = true;
+                        WyzwolToastEvent(uzytkownikId, tytul, tresc); // DODAJ TĘ LINIĘ
                         break;
 
                     case TypPowiadomieniaEnum.Push:
@@ -136,14 +130,9 @@ namespace SRKT.Business.Services
             string tresc,
             int? rezerwacjaId = null)
         {
-            // Email
-            await WyslijPowiadomienieAsync(uzytkownikId, tytul, tresc, TypPowiadomieniaEnum.Email, rezerwacjaId);
-
             // Systemowe (w aplikacji)
             await WyslijPowiadomienieAsync(uzytkownikId, tytul, tresc, TypPowiadomieniaEnum.Systemowe, rezerwacjaId);
 
-            // Natywny Windows Toast
-            await WyslijPowiadomienieAsync(uzytkownikId, tytul, tresc, TypPowiadomieniaEnum.Push, rezerwacjaId);
         }
 
         /// <summary>
