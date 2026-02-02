@@ -143,12 +143,9 @@
                                  IsChecked="{Binding PowiadamiajPrzypomnienia}" 
                                  Margin="0,0,0,10"/>
 
-                        <CheckBox Content="Płatności i faktury" 
+                        <CheckBox Content="Płatności" 
                                  IsChecked="{Binding PowiadamiajOPlatnosciach}" 
                                  Margin="0,0,0,10"/>
-
-                        <CheckBox Content="Promocje i oferty specjalne" 
-                                 IsChecked="{Binding PowiadamiajOPromocjach}"/>
                     </StackPanel>
                 </Border>
             </StackPanel>

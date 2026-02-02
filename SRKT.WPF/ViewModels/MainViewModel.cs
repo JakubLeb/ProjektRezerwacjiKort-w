@@ -39,13 +39,9 @@ namespace SRKT.WPF.ViewModels
             PokazMojeRezerwacjeCommand = new RelayCommand(_ => PokazMojeRezerwacje());
             PokazPowiadomieniaCommand = new RelayCommand(_ => PokazPowiadomienia());
             PokazPrzypomnieniCommand = new RelayCommand(_ => PokazPrzypomnienia());
+            PokazUstawieniaPowiadomienCommand = new RelayCommand(_ => PokazUstawieniaPowiadomien());
             WylogujCommand = new RelayCommand(_ => Wyloguj());
 
-            // Subskrybuj event Toast notifications
-            if (_powiadomienieService != null)
-            {
-                _powiadomienieService.NowePowiadomienieToast += OnNowePowiadomienieToast;
-            }
 
             // NIE pokazujemy domyślnego widoku tutaj - czekamy na ustawienie użytkownika
         }
@@ -95,10 +91,12 @@ namespace SRKT.WPF.ViewModels
         #endregion
 
         #region Komendy
+
         public ICommand PokazPrzypomnieniCommand { get; }
         public ICommand PokazDostepneKortyCommand { get; }
         public ICommand PokazMojeRezerwacjeCommand { get; }
         public ICommand PokazPowiadomieniaCommand { get; }
+        public ICommand PokazUstawieniaPowiadomienCommand { get; }
         public ICommand WylogujCommand { get; }
 
         #endregion
@@ -113,7 +111,6 @@ namespace SRKT.WPF.ViewModels
 
         private void PokazDostepneKorty()
         {
-            // Sprawdź czy użytkownik jest ustawiony
             if (AktualnyUzytkownik == null)
             {
                 MessageBox.Show("Błąd: Nie zalogowano użytkownika.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -168,7 +165,6 @@ namespace SRKT.WPF.ViewModels
 
                 if (przypomnienieService == null)
                 {
-                    // Spróbuj pobrać z DI
                     var app = Application.Current as App;
                     przypomnienieService = app?.ServiceProvider?.GetService(typeof(IPrzypomnienieService)) as IPrzypomnienieService;
 
@@ -205,7 +201,6 @@ namespace SRKT.WPF.ViewModels
 
                 if (powiadomienieService == null)
                 {
-                    // Spróbuj pobrać z DI
                     var app = Application.Current as App;
                     powiadomienieService = app?.ServiceProvider?.GetService(typeof(IPowiadomienieService)) as IPowiadomienieService;
                 }
@@ -221,7 +216,7 @@ namespace SRKT.WPF.ViewModels
                 var view = new PowiadomieniaView { DataContext = viewModel };
                 AktualnyWidok = view;
 
-                // Odśwież licznik po otwarciu widoku
+                // Odśwież liczbę nieprzeczytanych
                 _ = ZaladujLiczbeNieprzeczytanychAsync();
             }
             catch (Exception ex)
@@ -231,65 +226,83 @@ namespace SRKT.WPF.ViewModels
             }
         }
 
-        private void Wyloguj()
+        private void PokazUstawieniaPowiadomien()
         {
-            // Odsubskrybuj event
-            if (_powiadomienieService != null)
+            if (AktualnyUzytkownik == null)
             {
-                _powiadomienieService.NowePowiadomienieToast -= OnNowePowiadomienieToast;
+                MessageBox.Show("Błąd: Nie zalogowano użytkownika.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
             }
 
+            try
+            {
+                IPowiadomienieService powiadomienieService = _powiadomienieService;
+
+                if (powiadomienieService == null)
+                {
+                    var app = Application.Current as App;
+                    powiadomienieService = app?.ServiceProvider?.GetService(typeof(IPowiadomienieService)) as IPowiadomienieService;
+                }
+
+                if (powiadomienieService == null)
+                {
+                    MessageBox.Show("Serwis powiadomień nie jest dostępny.\nSprawdź konfigurację aplikacji.",
+                        "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                var viewModel = new UstawieniaPowiadomienViewModel(powiadomienieService, AktualnyUzytkownik);
+                var view = new UstawieniaPowiadomienView { DataContext = viewModel };
+                AktualnyWidok = view;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Błąd podczas ładowania ustawień powiadomień: {ex.Message}",
+                    "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void Wyloguj()
+        {
             LogoutRequested?.Invoke(this, EventArgs.Empty);
         }
 
         #endregion
 
-        #region Obsługa powiadomień
+        #region Metody pomocnicze
 
         private async Task ZaladujLiczbeNieprzeczytanychAsync()
         {
-            if (_powiadomienieService == null || AktualnyUzytkownik == null)
+            if (AktualnyUzytkownik == null || _powiadomienieService == null)
+            {
+                LiczbaNieprzeczytanych = 0;
                 return;
+            }
 
             try
             {
-                LiczbaNieprzeczytanych = await _powiadomienieService.GetLiczbaNieprzeczytanychAsync(AktualnyUzytkownik.Id);
+                var powiadomienia = await _powiadomienieService.GetPowiadomieniaUzytkownikaAsync(AktualnyUzytkownik.Id);
+                LiczbaNieprzeczytanych = powiadomienia?.Count(p =>
+                    p.StatusPowiadomieniaId == (int)StatusPowiadomieniaEnum.Wyslane ||
+                    p.StatusPowiadomieniaId == (int)StatusPowiadomieniaEnum.Oczekujace) ?? 0;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Błąd ładowania liczby powiadomień: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Błąd ładowania liczby nieprzeczytanych: {ex.Message}");
+                LiczbaNieprzeczytanych = 0;
             }
         }
 
-        private void OnNowePowiadomienieToast(object sender, PowiadomienieEventArgs e)
+        private void OnNowePowiadomienieToast(object sender, Powiadomienie powiadomienie)
         {
-            // Sprawdź czy powiadomienie jest dla aktualnego użytkownika
-            if (AktualnyUzytkownik == null || e.UzytkownikId != AktualnyUzytkownik.Id)
-                return;
-
-            // Wyświetl Toast
-            Application.Current.Dispatcher.Invoke(() =>
+            if (powiadomienie?.UzytkownikId == AktualnyUzytkownik?.Id)
             {
-                try
+                Application.Current.Dispatcher.Invoke(() =>
                 {
-                    ToastManager.Instance.ShowInfo(e.Tytul, e.Tresc);
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Błąd wyświetlania toast: {ex.Message}");
-                }
-            });
-
-            // Odśwież licznik
-            _ = ZaladujLiczbeNieprzeczytanychAsync();
-        }
-
-        /// <summary>
-        /// Metoda do ręcznego odświeżenia licznika powiadomień
-        /// </summary>
-        public async Task OdswiezPowiadomieniaAsync()
-        {
-            await ZaladujLiczbeNieprzeczytanychAsync();
+                    ToastManager.Instance.ShowInfo(powiadomienie.Tytul, powiadomienie.Tresc);
+                    _ = ZaladujLiczbeNieprzeczytanychAsync();
+                });
+            }
         }
 
         #endregion

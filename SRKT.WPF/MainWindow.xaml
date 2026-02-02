@@ -7,7 +7,7 @@
         xmlns:views="clr-namespace:SRKT.WPF.Views"
         mc:Ignorable="d"
         Title="System Rezerwacji Kortów Tenisowych" 
-        Height="700" Width="1200"
+        Height="700" Width="1250"
         WindowStartupLocation="CenterScreen">
 
     <Window.Resources>
@@ -27,7 +27,7 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="210"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
@@ -60,8 +60,8 @@
                        Style="{StaticResource MenuButtonStyle}"
                        Margin="0,5">
                     <Grid Width="150">
-                        <TextBlock Text="🔔 Powiadomienia" 
-                                  HorizontalAlignment="Left"
+                        <TextBlock Text="Powiadomienia" 
+                                  HorizontalAlignment="Center"
                                   VerticalAlignment="Center"/>
                         <!-- Badge z liczbą nieprzeczytanych -->
                         <Border Background="#E74C3C" 
@@ -82,8 +82,18 @@
                        Style="{StaticResource MenuButtonStyle}"
                        Margin="0,5">
                     <Grid Width="170">
-                        <TextBlock Text="⏰ Przypomnienia" 
-                                  HorizontalAlignment="Left"
+                        <TextBlock Text="Przypomnienia" 
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"/>
+                    </Grid>
+                </Button>
+
+                <Button Command="{Binding PokazUstawieniaPowiadomienCommand}"
+                       Style="{StaticResource MenuButtonStyle}"
+                       Margin="0">
+                    <Grid Width="170">
+                        <TextBlock Text="Ustawienia powiadomień" 
+                                  HorizontalAlignment="Center"
                                   VerticalAlignment="Center"/>
                     </Grid>
                 </Button>
