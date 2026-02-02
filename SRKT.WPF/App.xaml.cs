@@ -22,14 +22,22 @@ namespace SRKT.WPF
             ConfigureServices(services);
             ServiceProvider = services.BuildServiceProvider();
 
-            // Uruchom okno logowania
-            var loginWindow = ServiceProvider.GetRequiredService<LoginWindow>();
-            loginWindow.Show();
+            // Uruchom PIERWSZE okno logowania
+            var loginWindow1 = ServiceProvider.GetRequiredService<LoginWindow>();
+            loginWindow1.Show();
+
+            // Uruchom DRUGIE okno logowania
+            // Ponieważ LoginWindow jest 'Transient', otrzymasz nową instancję
+            var loginWindow2 = ServiceProvider.GetRequiredService<LoginWindow>();
+            loginWindow2.Title = "Logowanie - Okno 2"; // Opcjonalnie: zmiana tytułu dla rozróżnienia
+            loginWindow2.Left = loginWindow1.Left + 50; // Opcjonalnie: przesunięcie, by nie nakładały się idealnie
+            loginWindow2.Top = loginWindow1.Top + 50;
+            loginWindow2.Show();
         }
 
         private void ConfigureServices(IServiceCollection services)
         {
-            // Konfiguracja bazy danych - zmień connection string na swój
+            // Konfiguracja bazy danych
             services.AddDbContext<SRKTDbContext>(options =>
                 options.UseSqlServer("Server=SCHIZOFRENIK\\SQLEXPRESS;Database=SystemRezerwacji;Integrated Security=True;TrustServerCertificate=True;Encrypt=False;"));
 
@@ -43,10 +51,8 @@ namespace SRKT.WPF
             services.AddScoped<IRezerwacjaService, RezerwacjaService>();
             services.AddScoped<IPlatnoscService, PlatnoscService>();
 
-            // ⭐ Serwis powiadomień - zarejestrowany jako Singleton dla obsługi eventów Toast
-            services.AddSingleton<IPowiadomienieService, PowiadomienieService>();
-
             // Serwis przypomnień
+
             services.AddScoped<IPrzypomnienieService, PrzypomnienieService>();
             services.AddScoped<IRepository<Przypomnienie>, Repository<Przypomnienie>>();
             services.AddScoped<IPowiadomienieService, PowiadomienieService>();

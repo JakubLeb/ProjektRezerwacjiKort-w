@@ -4,12 +4,6 @@ using System.Net.Mail;
 
 namespace SRKT.Business.Services
 {
-    /// <summary>
-    /// Implementacja serwisu powiadomień z obsługą trzech kanałów:
-    /// - Email (symulacja/logowanie)
-    /// - Systemowe (zapisywane w bazie, widoczne w aplikacji)
-    /// - Push/Toast (wyświetlane jako popup w aplikacji)
-    /// </summary>
     public class PowiadomienieService : IPowiadomienieService
     {
         private readonly IRepository<Powiadomienie> _powiadomienieRepo;
