@@ -1,8 +1,6 @@
-﻿using CommunityToolkit.WinUI.Notifications;
-using Microsoft.Toolkit.Uwp.Notifications;
-using System;
-using System.Windows;
-using static System.Net.Mime.MediaTypeNames;
+﻿using System;
+using Windows.UI.Notifications;
+using Windows.Data.Xml.Dom;
 
 namespace SRKT.WPF.Services
 {
@@ -13,6 +11,7 @@ namespace SRKT.WPF.Services
     {
         private static WindowsToastService _instance;
         private static readonly object _lock = new object();
+        private readonly string _appId;
 
         public static WindowsToastService Instance
         {
@@ -34,7 +33,8 @@ namespace SRKT.WPF.Services
 
         private WindowsToastService()
         {
-            // Prywatny konstruktor dla singletona
+            // Użyj nazwy aplikacji jako AppId
+            _appId = System.Windows.Application.Current?.MainWindow?.Title ?? "SRKT";
         }
 
         /// <summary>
@@ -44,15 +44,11 @@ namespace SRKT.WPF.Services
         {
             try
             {
-                new ToastContentBuilder()
-                    .AddText(title)
-                    .AddText(message)
-                    .Show();
+                ShowToastNotification(title, message);
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Błąd wyświetlania Toast: {ex.Message}");
-                // Fallback - użyj MessageBox jeśli Toast nie działa
                 ShowFallbackNotification(title, message);
             }
         }
@@ -64,10 +60,7 @@ namespace SRKT.WPF.Services
         {
             try
             {
-                new ToastContentBuilder()
-                    .AddText("ℹ️ " + title)
-                    .AddText(message)
-                    .Show();
+                ShowToastNotification("ℹ️ " + title, message);
             }
             catch (Exception ex)
             {
@@ -83,10 +76,7 @@ namespace SRKT.WPF.Services
         {
             try
             {
-                new ToastContentBuilder()
-                    .AddText("✅ " + title)
-                    .AddText(message)
-                    .Show();
+                ShowToastNotification("✅ " + title, message);
             }
             catch (Exception ex)
             {
@@ -102,10 +92,7 @@ namespace SRKT.WPF.Services
         {
             try
             {
-                new ToastContentBuilder()
-                    .AddText("⚠️ " + title)
-                    .AddText(message)
-                    .Show();
+                ShowToastNotification("⚠️ " + title, message);
             }
             catch (Exception ex)
             {
@@ -121,10 +108,7 @@ namespace SRKT.WPF.Services
         {
             try
             {
-                new ToastContentBuilder()
-                    .AddText("❌ " + title)
-                    .AddText(message)
-                    .Show();
+                ShowToastNotification("❌ " + title, message);
             }
             catch (Exception ex)
             {
@@ -140,12 +124,8 @@ namespace SRKT.WPF.Services
         {
             try
             {
-                var builder = new ToastContentBuilder()
-                    .AddText("⏰ " + title)
-                    .AddText(message)
-                    .AddText($"Czas: {reminderTime:HH:mm dd.MM.yyyy}");
-
-                builder.Show();
+                var fullMessage = $"{message}\nCzas: {reminderTime:HH:mm dd.MM.yyyy}";
+                ShowToastNotification("⏰ " + title, fullMessage);
             }
             catch (Exception ex)
             {
@@ -161,18 +141,9 @@ namespace SRKT.WPF.Services
         {
             try
             {
-                var builder = new ToastContentBuilder()
-                    .AddText(title)
-                    .AddText(message);
-
-                foreach (var (text, actionId) in buttons)
-                {
-                    builder.AddButton(new ToastButton()
-                        .SetContent(text)
-                        .AddArgument("action", actionId));
-                }
-
-                builder.Show();
+                var toastXml = CreateToastXmlWithActions(title, message, buttons);
+                var toast = new ToastNotification(toastXml);
+                ToastNotificationManager.CreateToastNotifier(_appId).Show(toast);
             }
             catch (Exception ex)
             {
@@ -190,18 +161,19 @@ namespace SRKT.WPF.Services
             {
                 if (scheduledTime <= DateTime.Now)
                 {
-                    // Jeśli czas już minął, pokaż natychmiast
                     ShowToast(title, message);
                     return;
                 }
 
-                var builder = new ToastContentBuilder()
-                    .AddText("⏰ " + title)
-                    .AddText(message)
-                    .AddText($"Zaplanowano na: {scheduledTime:HH:mm}");
+                var toastXml = CreateToastXml("⏰ " + title, $"{message}\nZaplanowano na: {scheduledTime:HH:mm}");
+                var scheduledToast = new ScheduledToastNotification(toastXml, scheduledTime);
 
-                // Zaplanuj powiadomienie
-                builder.Schedule(scheduledTime);
+                if (!string.IsNullOrEmpty(tag))
+                {
+                    scheduledToast.Tag = tag;
+                }
+
+                ToastNotificationManager.CreateToastNotifier(_appId).AddToSchedule(scheduledToast);
             }
             catch (Exception ex)
             {
@@ -216,12 +188,72 @@ namespace SRKT.WPF.Services
         {
             try
             {
-                ToastNotificationManagerCompat.History.Clear();
+                ToastNotificationManager.History.Clear(_appId);
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Błąd czyszczenia Toast: {ex.Message}");
             }
+        }
+
+        private void ShowToastNotification(string title, string message)
+        {
+            var toastXml = CreateToastXml(title, message);
+            var toast = new ToastNotification(toastXml);
+            ToastNotificationManager.CreateToastNotifier(_appId).Show(toast);
+        }
+
+        private XmlDocument CreateToastXml(string title, string message)
+        {
+            var toastXmlString = $@"
+                <toast>
+                    <visual>
+                        <binding template='ToastGeneric'>
+                            <text>{EscapeXml(title)}</text>
+                            <text>{EscapeXml(message)}</text>
+                        </binding>
+                    </visual>
+                </toast>";
+
+            var toastXml = new XmlDocument();
+            toastXml.LoadXml(toastXmlString);
+            return toastXml;
+        }
+
+        private XmlDocument CreateToastXmlWithActions(string title, string message, (string text, string actionId)[] buttons)
+        {
+            var actionsXml = string.Empty;
+            foreach (var (text, actionId) in buttons)
+            {
+                actionsXml += $@"<action content='{EscapeXml(text)}' arguments='{EscapeXml(actionId)}' />";
+            }
+
+            var toastXmlString = $@"
+                <toast>
+                    <visual>
+                        <binding template='ToastGeneric'>
+                            <text>{EscapeXml(title)}</text>
+                            <text>{EscapeXml(message)}</text>
+                        </binding>
+                    </visual>
+                    <actions>
+                        {actionsXml}
+                    </actions>
+                </toast>";
+
+            var toastXml = new XmlDocument();
+            toastXml.LoadXml(toastXmlString);
+            return toastXml;
+        }
+
+        private string EscapeXml(string text)
+        {
+            return text?
+                .Replace("&", "&amp;")
+                .Replace("<", "&lt;")
+                .Replace(">", "&gt;")
+                .Replace("\"", "&quot;")
+                .Replace("'", "&apos;") ?? string.Empty;
         }
 
         /// <summary>
@@ -231,9 +263,9 @@ namespace SRKT.WPF.Services
         {
             try
             {
-                Application.Current?.Dispatcher?.Invoke(() =>
+                System.Windows.Application.Current?.Dispatcher?.Invoke(() =>
                 {
-                    MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Information);
+                    System.Windows.MessageBox.Show(message, title, System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
                 });
             }
             catch
