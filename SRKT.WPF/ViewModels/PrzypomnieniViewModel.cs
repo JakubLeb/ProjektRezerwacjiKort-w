@@ -20,33 +20,30 @@ namespace SRKT.WPF.ViewModels
 
         // Filtry
         private bool _filtrWszystkie = true;
-        private bool _filtrAktywne;
-        private bool _filtrWyslane;
+        private bool _filtrAktywne = false;
+        private bool _filtrWyslane = false;
+        private bool _filtrUsuniete = false;
 
         public PrzypomnieniViewModel(
             IPrzypomnienieService przypomnienieService,
             IRezerwacjaService rezerwacjaService,
             Uzytkownik uzytkownik)
         {
-            _przypomnienieService = przypomnienieService ?? throw new ArgumentNullException(nameof(przypomnienieService));
-            _rezerwacjaService = rezerwacjaService ?? throw new ArgumentNullException(nameof(rezerwacjaService));
-            _uzytkownik = uzytkownik ?? throw new ArgumentNullException(nameof(uzytkownik));
+            _przypomnienieService = przypomnienieService;
+            _rezerwacjaService = rezerwacjaService;
+            _uzytkownik = uzytkownik;
 
             Przypomnienia = new ObservableCollection<Przypomnienie>();
             PrzypomnieniFiltrowane = new ObservableCollection<Przypomnienie>();
 
-            // Komendy
-            OdswiezCommand = new RelayCommand(async _ => await ZaladujPrzypomnieniAsync(), _ => !IsLoading);
-            DodajPrzypomnienieCommand = new RelayCommand(async _ => await DodajPrzypomnienieAsync(), _ => !IsLoading);
+            OdswiezCommand = new RelayCommand(async _ => await ZaladujPrzypomnieniAsync());
+            DodajPrzypomnienieCommand = new RelayCommand(async _ => await DodajPrzypomnienieAsync());
             EdytujPrzypomnienieCommand = new RelayCommand(async param => await EdytujPrzypomnienieAsync(param as Przypomnienie), _ => !IsLoading);
             AnulujPrzypomnienieCommand = new RelayCommand(async param => await AnulujPrzypomnienieAsync(param as Przypomnienie), _ => !IsLoading);
             UsunPrzypomnienieCommand = new RelayCommand(async param => await UsunPrzypomnienieAsync(param as Przypomnienie), _ => !IsLoading);
 
-            // Załaduj dane asynchronicznie
-            Application.Current.Dispatcher.InvokeAsync(async () =>
-            {
-                await ZaladujPrzypomnieniAsync();
-            });
+            // Załaduj dane na starcie
+            _ = ZaladujPrzypomnieniAsync();
         }
 
         #region Właściwości
@@ -94,6 +91,12 @@ namespace SRKT.WPF.ViewModels
         {
             get => _filtrWyslane;
             set { if (SetProperty(ref _filtrWyslane, value) && value) FiltrujPrzypomnienia(); }
+        }
+
+        public bool FiltrUsuniete
+        {
+            get => _filtrUsuniete;
+            set { if (SetProperty(ref _filtrUsuniete, value) && value) FiltrujPrzypomnienia(); }
         }
 
         #endregion
@@ -166,6 +169,11 @@ namespace SRKT.WPF.ViewModels
                 else if (FiltrWyslane)
                 {
                     przefiltrowane = przefiltrowane.Where(p => p.CzyWyslane);
+                }
+                else if (FiltrUsuniete)
+                {
+                    // Filtr dla usuniętych/anulowanych przypomnień (CzyAktywne = false)
+                    przefiltrowane = przefiltrowane.Where(p => !p.CzyAktywne);
                 }
 
                 PrzypomnieniFiltrowane.Clear();

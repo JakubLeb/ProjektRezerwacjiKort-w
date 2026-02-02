@@ -1,10 +1,7 @@
 ﻿<UserControl x:Class="SRKT.WPF.Views.UstawieniaPowiadomienView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             mc:Ignorable="d"
-             Background="#F5F6FA" Height="730" Width="692">
+             Background="#F5F6FA" Width="459" Height="642">
 
     <Grid Margin="20">
         <Grid.RowDefinitions>
@@ -15,17 +12,17 @@
 
         <!-- Nagłówek -->
         <StackPanel Grid.Row="0" Margin="0,0,0,20">
-            <TextBlock Text="⚙️ Ustawienia Powiadomień" 
+            <TextBlock Text="⚙️ Ustawienia powiadomień" 
                       FontSize="24" 
-                      FontWeight="ExtraBold" 
+                      FontWeight="Bold" 
                       Foreground="#2C3E50"/>
-            <TextBlock Text="Wybierz preferowane kanały otrzymywania powiadomień" 
+            <TextBlock Text="Dostosuj sposób otrzymywania powiadomień" 
                       FontSize="14" 
                       Foreground="#7F8C8D" 
                       Margin="0,5,0,0"/>
         </StackPanel>
 
-        <!-- Opcje -->
+        <!-- Zawartość -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel>
                 <!-- Sekcja: Kanały powiadomień -->
@@ -36,50 +33,11 @@
                        BorderBrush="#DCDDE1" 
                        BorderThickness="1">
                     <StackPanel>
-                        <TextBlock Text="Kanały dostarczania" 
+                        <TextBlock Text="📢 Kanały powiadomień" 
                                   FontSize="16" 
                                   FontWeight="Bold" 
                                   Foreground="#2C3E50" 
                                   Margin="0,0,0,15"/>
-
-                        <!-- Email -->
-                        <Border Background="#F8F9FA" 
-                               CornerRadius="8" 
-                               Padding="15" 
-                               Margin="0,0,0,10">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-
-                                <Border Grid.Column="0" 
-                                       Width="45" Height="45" 
-                                       CornerRadius="22" 
-                                       Background="#9B59B6" 
-                                       Margin="0,0,15,0">
-                                    <TextBlock Text="✉️" 
-                                              FontSize="18" 
-                                              HorizontalAlignment="Center" 
-                                              VerticalAlignment="Center"/>
-                                </Border>
-
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                    <TextBlock Text="Powiadomienia Email" 
-                                              FontWeight="SemiBold" 
-                                              FontSize="14" 
-                                              Foreground="#2C3E50"/>
-                                    <TextBlock Text="Otrzymuj powiadomienia na adres email" 
-                                              FontSize="12" 
-                                              Foreground="#7F8C8D"/>
-                                </StackPanel>
-
-                                <CheckBox Grid.Column="2" 
-                                         IsChecked="{Binding EmailWlaczony}" 
-                                         VerticalAlignment="Center"/>
-                            </Grid>
-                        </Border>
 
                         <!-- Systemowe -->
                         <Border Background="#F8F9FA" 
@@ -98,18 +56,18 @@
                                        CornerRadius="22" 
                                        Background="#3498DB" 
                                        Margin="0,0,15,0">
-                                    <TextBlock Text="📋" 
+                                    <TextBlock Text="🔔" 
                                               FontSize="18" 
                                               HorizontalAlignment="Center" 
                                               VerticalAlignment="Center"/>
                                 </Border>
 
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                    <TextBlock Text="Powiadomienia w aplikacji" 
+                                    <TextBlock Text="Powiadomienia systemowe" 
                                               FontWeight="SemiBold" 
                                               FontSize="14" 
                                               Foreground="#2C3E50"/>
-                                    <TextBlock Text="Powiadomienia widoczne w panelu 'Moje Powiadomienia'" 
+                                    <TextBlock Text="Powiadomienia widoczne w aplikacji" 
                                               FontSize="12" 
                                               Foreground="#7F8C8D"/>
                                 </StackPanel>
@@ -134,20 +92,20 @@
                                 <Border Grid.Column="0" 
                                        Width="45" Height="45" 
                                        CornerRadius="22" 
-                                       Background="#F39C12" 
+                                       Background="#E74C3C" 
                                        Margin="0,0,15,0">
-                                    <TextBlock Text="🔔" 
+                                    <TextBlock Text="📱" 
                                               FontSize="18" 
                                               HorizontalAlignment="Center" 
                                               VerticalAlignment="Center"/>
                                 </Border>
 
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                    <TextBlock Text="Powiadomienia Pop-up (Toast)" 
+                                    <TextBlock Text="Powiadomienia Pop-up" 
                                               FontWeight="SemiBold" 
                                               FontSize="14" 
                                               Foreground="#2C3E50"/>
-                                    <TextBlock Text="Wyskakujące powiadomienia podczas korzystania z aplikacji" 
+                                    <TextBlock Text="Wyskakujące powiadomienia Windows" 
                                               FontSize="12" 
                                               Foreground="#7F8C8D"/>
                                 </StackPanel>
@@ -163,11 +121,11 @@
                 <!-- Sekcja: Typy powiadomień -->
                 <Border Background="White" 
                        CornerRadius="10" 
-                       Padding="20" 
+                       Padding="20"
                        BorderBrush="#DCDDE1" 
                        BorderThickness="1">
                     <StackPanel>
-                        <TextBlock Text="Powiadamiaj mnie o:" 
+                        <TextBlock Text="📋 Typy powiadomień" 
                                   FontSize="16" 
                                   FontWeight="Bold" 
                                   Foreground="#2C3E50" 
