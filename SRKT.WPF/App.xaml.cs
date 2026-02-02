@@ -30,13 +30,6 @@ namespace SRKT.WPF
             // Uruchom PIERWSZE okno logowania
             var loginWindow1 = ServiceProvider.GetRequiredService<LoginWindow>();
             loginWindow1.Show();
-
-            // Uruchom DRUGIE okno logowania (opcjonalne - do testów)
-            var loginWindow2 = ServiceProvider.GetRequiredService<LoginWindow>();
-            loginWindow2.Title = "Logowanie - Okno 2";
-            loginWindow2.Left = loginWindow1.Left + 50;
-            loginWindow2.Top = loginWindow1.Top + 50;
-            loginWindow2.Show();
         }
 
         protected override void OnExit(ExitEventArgs e)

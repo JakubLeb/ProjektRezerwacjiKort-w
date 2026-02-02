@@ -46,12 +46,6 @@ namespace SRKT.DataAccess.Repositories
                 .ToListAsync();
         }
 
-        /// <summary>
-        /// Pobiera rezerwacje z zakresu dat z pełnymi danymi relacyjnymi:
-        /// - Kort (z ObiektSportowy i TypKortu)
-        /// - Uzytkownik
-        /// - StatusRezerwacji
-        /// </summary>
         public async Task<IEnumerable<Rezerwacja>> GetRezerwacjeByDataAsync(DateTime dataOd, DateTime dataDo)
         {
             return await _dbSet

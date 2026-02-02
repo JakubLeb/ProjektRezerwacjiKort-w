@@ -1,8 +1,5 @@
 ﻿namespace SRKT.Core.Models
 {
-    /// <summary>
-    /// Model przypomnienia powiązanego z rezerwacją
-    /// </summary>
     public class Przypomnienie
     {
         public int Id { get; set; }

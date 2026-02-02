@@ -121,9 +121,7 @@ namespace SRKT.Business.Services
             }
         }
 
-        /// <summary>
         /// Wysyła powiadomienie wszystkimi kanałami jednocześnie
-        /// </summary>
         public async Task WyslijPowiadomienieWszystkimiKanalamiAsync(
             int uzytkownikId,
             string tytul,
@@ -135,9 +133,7 @@ namespace SRKT.Business.Services
 
         }
 
-        /// <summary>
         /// Pobiera nieprzeczytane powiadomienia (systemowe)
-        /// </summary>
         public async Task<IEnumerable<Powiadomienie>> GetNieprzeczytanePowiadomieniaAsync(int uzytkownikId)
         {
             var wszystkie = await _powiadomienieRepo.FindAsync(p =>
@@ -148,9 +144,7 @@ namespace SRKT.Business.Services
             return wszystkie.OrderByDescending(p => p.DataUtworzenia);
         }
 
-        /// <summary>
         /// Oznacza powiadomienie jako przeczytane
-        /// </summary>
         public async Task<bool> OznaczJakoPrzeczytaneAsync(int powiadomienieId)
         {
             try
@@ -169,9 +163,7 @@ namespace SRKT.Business.Services
             }
         }
 
-        /// <summary>
         /// Oznacza wszystkie powiadomienia użytkownika jako przeczytane
-        /// </summary>
         public async Task OznaczWszystkieJakoPrzeczytaneAsync(int uzytkownikId)
         {
             var nieprzeczytane = await GetNieprzeczytanePowiadomieniaAsync(uzytkownikId);
@@ -183,18 +175,14 @@ namespace SRKT.Business.Services
             }
         }
 
-        /// <summary>
         /// Zwraca liczbę nieprzeczytanych powiadomień
-        /// </summary>
         public async Task<int> GetLiczbaNieprzeczytanychAsync(int uzytkownikId)
         {
             var nieprzeczytane = await GetNieprzeczytanePowiadomieniaAsync(uzytkownikId);
             return nieprzeczytane.Count();
         }
 
-        /// <summary>
         /// Usuwa powiadomienie
-        /// </summary>
         public async Task<bool> UsunPowiadomienieAsync(int powiadomienieId)
         {
             try
@@ -212,15 +200,11 @@ namespace SRKT.Business.Services
 
         #region Prywatne metody obsługi kanałów
 
-        /// <summary>
         /// Wysyła natywne powiadomienie Windows Toast
-        /// </summary>
         private bool WyslijNatywnyWindowsToast(string tytul, string tresc, int? rezerwacjaId = null)
         {
             try
             {
-                // Użyj WindowsToastService z warstwy WPF (jeśli dostępny)
-                // lub po prostu wyzwól event który zostanie obsłużony przez UI
                 System.Diagnostics.Debug.WriteLine($"[WINDOWS TOAST] {tytul}: {tresc}");
                 return true;
             }
@@ -231,9 +215,7 @@ namespace SRKT.Business.Services
             }
         }
 
-        /// <summary>
         /// Symulacja wysyłki email (w produkcji: SMTP)
-        /// </summary>
         private async Task<bool> WyslijEmailAsync(int uzytkownikId, string tytul, string tresc)
         {
             try
@@ -283,9 +265,7 @@ namespace SRKT.Business.Services
             }
         }
 
-        /// <summary>
         /// Wyzwala event Toast dla aplikacji (opcjonalne)
-        /// </summary>
         private void WyzwolToastEvent(int uzytkownikId, string tytul, string tresc)
         {
             try
@@ -300,7 +280,6 @@ namespace SRKT.Business.Services
             }
             catch
             {
-                // Ignoruj błędy eventu
             }
         }
 

@@ -4,9 +4,6 @@ using Windows.Data.Xml.Dom;
 
 namespace SRKT.WPF.Services
 {
-    /// <summary>
-    /// Serwis do wyświetlania natywnych powiadomień Windows (Toast Notifications)
-    /// </summary>
     public class WindowsToastService
     {
         private static WindowsToastService _instance;
@@ -33,13 +30,10 @@ namespace SRKT.WPF.Services
 
         private WindowsToastService()
         {
-            // Użyj nazwy aplikacji jako AppId
             _appId = System.Windows.Application.Current?.MainWindow?.Title ?? "SRKT";
         }
 
-        /// <summary>
         /// Wyświetla proste powiadomienie Toast
-        /// </summary>
         public void ShowToast(string title, string message)
         {
             try
@@ -53,9 +47,8 @@ namespace SRKT.WPF.Services
             }
         }
 
-        /// <summary>
         /// Wyświetla powiadomienie Toast z ikoną informacji
-        /// </summary>
+ 
         public void ShowInfo(string title, string message)
         {
             try
@@ -69,9 +62,7 @@ namespace SRKT.WPF.Services
             }
         }
 
-        /// <summary>
         /// Wyświetla powiadomienie Toast z ikoną sukcesu
-        /// </summary>
         public void ShowSuccess(string title, string message)
         {
             try
@@ -85,9 +76,7 @@ namespace SRKT.WPF.Services
             }
         }
 
-        /// <summary>
         /// Wyświetla powiadomienie Toast z ikoną ostrzeżenia
-        /// </summary>
         public void ShowWarning(string title, string message)
         {
             try
@@ -101,9 +90,7 @@ namespace SRKT.WPF.Services
             }
         }
 
-        /// <summary>
         /// Wyświetla powiadomienie Toast z ikoną błędu
-        /// </summary>
         public void ShowError(string title, string message)
         {
             try
@@ -117,9 +104,7 @@ namespace SRKT.WPF.Services
             }
         }
 
-        /// <summary>
         /// Wyświetla powiadomienie o przypomnieniu rezerwacji
-        /// </summary>
         public void ShowReminderToast(string title, string message, DateTime reminderTime, int? reservationId = null)
         {
             try
@@ -134,9 +119,7 @@ namespace SRKT.WPF.Services
             }
         }
 
-        /// <summary>
         /// Wyświetla powiadomienie Toast z przyciskami akcji
-        /// </summary>
         public void ShowToastWithActions(string title, string message, params (string text, string actionId)[] buttons)
         {
             try
@@ -152,9 +135,7 @@ namespace SRKT.WPF.Services
             }
         }
 
-        /// <summary>
         /// Zaplanowane powiadomienie Toast (wyświetli się o określonej godzinie)
-        /// </summary>
         public void ScheduleToast(string title, string message, DateTime scheduledTime, string tag = null)
         {
             try
@@ -181,9 +162,7 @@ namespace SRKT.WPF.Services
             }
         }
 
-        /// <summary>
         /// Wyczyść wszystkie powiadomienia aplikacji
-        /// </summary>
         public void ClearAllToasts()
         {
             try
@@ -256,9 +235,7 @@ namespace SRKT.WPF.Services
                 .Replace("'", "&apos;") ?? string.Empty;
         }
 
-        /// <summary>
         /// Fallback - wyświetla powiadomienie jako MessageBox jeśli Toast nie działa
-        /// </summary>
         private void ShowFallbackNotification(string title, string message)
         {
             try

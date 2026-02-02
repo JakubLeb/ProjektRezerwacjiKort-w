@@ -138,9 +138,7 @@ namespace SRKT.Business.Services
             return true;
         }
 
-        /// <summary>
         /// Oznacza rezerwację jako opłaconą (symulacja płatności gotówką na miejscu)
-        /// </summary>
         public async Task<bool> OznaczJakoOplaconeAsync(int rezerwacjaId)
         {
             var rezerwacja = await _rezerwacjaRepo.GetByIdAsync(rezerwacjaId);
@@ -175,10 +173,8 @@ namespace SRKT.Business.Services
             return true;
         }
 
-        /// <summary>
         /// Pobiera wszystkie rezerwacje z danego dnia z pełnymi danymi relacyjnymi
         /// (Kort, ObiektSportowy, Uzytkownik, StatusRezerwacji)
-        /// </summary>
         public async Task<IEnumerable<Rezerwacja>> PobierzWszystkieRezerwacjeZDatyAsync(DateTime data)
         {
             // Używamy nowej metody z repozytorium, która pobiera pełne dane

@@ -3,9 +3,7 @@ using SRKT.DataAccess.Repositories;
 
 namespace SRKT.Business.Services
 {
-    /// <summary>
     /// Implementacja serwisu przypomnień z obsługą natywnych powiadomień Windows
-    /// </summary>
     public class PrzypomnienieService : IPrzypomnienieService
     {
         private readonly IRepository<Przypomnienie> _przypomnienieRepo;
@@ -185,7 +183,7 @@ namespace SRKT.Business.Services
             {
                 try
                 {
-                    // Wyślij powiadomienie wszystkimi kanałami (w tym natywny Windows Toast)
+                    // Wyślij powiadomienie wszystkimi kanałami 
                     if (_powiadomienieService != null)
                     {
                         await _powiadomienieService.WyslijPowiadomienieWszystkimiKanalamiAsync(

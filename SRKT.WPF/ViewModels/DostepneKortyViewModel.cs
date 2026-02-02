@@ -1,6 +1,7 @@
 ﻿using SRKT.Business.Services;
 using SRKT.Core.Models;
 using SRKT.DataAccess.Repositories;
+using SRKT.WPF.ViewModels;
 using SRKT.WPF.Views;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -9,7 +10,6 @@ using System.Windows.Input;
 
 namespace SRKT.WPF.ViewModels
 {
-    // Wrapper (Opakowanie) dla wyniku wyszukiwania
     public class OpcjaRezerwacji
     {
         public TimeSlot Slot { get; set; }
@@ -18,10 +18,8 @@ namespace SRKT.WPF.ViewModels
         public string LinkDoMapy { get; set; }
         public string ZdjecieSciezka { get; set; }
 
-        // NOWE POLE:
         public decimal CenaZaGodzine { get; set; }
 
-        // Właściwości pomocnicze dla XAML - z obsługą null
         public string GodzinaStart => Slot?.Start.ToString("HH:mm") ?? "--:--";
         public string GodzinaKoniec => Slot?.End.ToString("HH:mm") ?? "--:--";
         public bool JestDostepny => Slot?.Dostepny ?? false;

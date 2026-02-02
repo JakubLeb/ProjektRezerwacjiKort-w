@@ -39,14 +39,12 @@ namespace SRKT.WPF.ViewModels
             PokazMojeRezerwacjeCommand = new RelayCommand(_ => PokazMojeRezerwacje());
             PokazPowiadomieniaCommand = new RelayCommand(_ => PokazPowiadomienia());
             PokazPrzypomnieniCommand = new RelayCommand(_ => PokazPrzypomnienia());
-            PokazUstawieniaPowiadomienCommand = new RelayCommand(_ => PokazUstawieniaPowiadomien());
             WylogujCommand = new RelayCommand(_ => Wyloguj());
 
             if (_powiadomienieService != null)
             {
                 _powiadomienieService.NowePowiadomienieToast += OnNowePowiadomienieToast;
             }
-            // NIE pokazujemy domyślnego widoku tutaj - czekamy na ustawienie użytkownika
         }
 
         #region Właściwości
@@ -229,41 +227,6 @@ namespace SRKT.WPF.ViewModels
             }
         }
 
-        private void PokazUstawieniaPowiadomien()
-        {
-            if (AktualnyUzytkownik == null)
-            {
-                MessageBox.Show("Błąd: Nie zalogowano użytkownika.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
-
-            try
-            {
-                IPowiadomienieService powiadomienieService = _powiadomienieService;
-
-                if (powiadomienieService == null)
-                {
-                    var app = Application.Current as App;
-                    powiadomienieService = app?.ServiceProvider?.GetService(typeof(IPowiadomienieService)) as IPowiadomienieService;
-                }
-
-                if (powiadomienieService == null)
-                {
-                    MessageBox.Show("Serwis powiadomień nie jest dostępny.\nSprawdź konfigurację aplikacji.",
-                        "Błąd", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
-                var viewModel = new UstawieniaPowiadomienViewModel(powiadomienieService, AktualnyUzytkownik);
-                var view = new UstawieniaPowiadomienView { DataContext = viewModel };
-                AktualnyWidok = view;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Błąd podczas ładowania ustawień powiadomień: {ex.Message}",
-                    "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
 
         private void Wyloguj()
         {

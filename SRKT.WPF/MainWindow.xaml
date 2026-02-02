@@ -88,15 +88,6 @@
                     </Grid>
                 </Button>
 
-                <Button Command="{Binding PokazUstawieniaPowiadomienCommand}"
-                       Style="{StaticResource MenuButtonStyle}"
-                       Margin="0,5">
-                    <Grid Width="170">
-                        <TextBlock Text="Ustawienia powiadomień" 
-                                  HorizontalAlignment="Center"
-                                  VerticalAlignment="Center"/>
-                    </Grid>
-                </Button>
 
                 <Button Content="Wyloguj" 
                        Command="{Binding WylogujCommand}"
