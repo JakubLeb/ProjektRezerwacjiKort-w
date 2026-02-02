@@ -183,7 +183,58 @@ namespace SRKT.Business.Services
 
             return await _rezerwacjaRepo.GetRezerwacjeByDataAsync(dataOd, dataDo);
         }
+        public async Task<Rezerwacja> UtworzRezerwacjeBezPowiadomieniaAsync(int kortId, int uzytkownikId, DateTime dataRezerwacji, decimal iloscGodzin, string uwagi = null)
+        {
+            // Sprawdź dostępność
+            var czyDostepny = await _rezerwacjaRepo.CzyKortDostepnyAsync(kortId, dataRezerwacji, iloscGodzin);
+            if (!czyDostepny)
+                throw new Exception("Kort nie jest dostępny w wybranym terminie.");
 
+            // Pobierz kort dla ceny
+            var kort = await _kortRepo.GetByIdAsync(kortId);
+            if (kort == null)
+                throw new Exception("Kort nie istnieje.");
+
+            if (!kort.CzyAktywny)
+                throw new Exception("Kort jest nieaktywny.");
+
+            // Utwórz rezerwację BEZ wysyłania powiadomienia
+            var rezerwacja = new Rezerwacja
+            {
+                KortId = kortId,
+                UzytkownikId = uzytkownikId,
+                DataRezerwacji = dataRezerwacji,
+                IloscGodzin = iloscGodzin,
+                KosztCalkowity = kort.CenaZaGodzine * iloscGodzin,
+                CzyOplacona = false,
+                StatusRezerwacjiId = 1, // Oczekująca
+                DataUtworzenia = DateTime.Now,
+                Uwagi = uwagi
+            };
+
+            return await _rezerwacjaRepo.AddAsync(rezerwacja);
+        }
+        public async Task WyslijPowiadomienieORezerwacjiAsync(int rezerwacjaId, bool oplacona)
+        {
+            if (_powiadomienieService == null) return;
+
+            var rezerwacja = await _rezerwacjaRepo.GetByIdAsync(rezerwacjaId);
+            if (rezerwacja == null) return;
+
+            try
+            {
+                string tytul = oplacona ? "Rezerwacja opłacona" : "Nowa rezerwacja";
+                string tresc = oplacona
+                    ? $"Twoja rezerwacja na {rezerwacja.DataRezerwacji:dd.MM.yyyy HH:mm} została utworzona i opłacona."
+                    : $"Twoja rezerwacja na {rezerwacja.DataRezerwacji:dd.MM.yyyy HH:mm} została utworzona. Płatność do uregulowania na miejscu.";
+
+                await _powiadomienieService.WyslijPowiadomienieDlaRezerwacjiAsync(rezerwacjaId, tytul, tresc);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Błąd wysyłania powiadomienia: {ex.Message}");
+            }
+        }
         public async Task<IEnumerable<TimeSlot>> GetWolneTerminyAsync(int kortId, DateTime data, decimal dlugoscSesji)
         {
             // Pobierz kort z pełnymi danymi

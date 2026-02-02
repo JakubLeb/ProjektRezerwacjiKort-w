@@ -4,6 +4,7 @@ namespace SRKT.Business.Services
 {
     public interface IRezerwacjaService
     {
+       
         Task<IEnumerable<Rezerwacja>> GetRezerwacjeUzytkownikaAsync(int uzytkownikId);
         Task<IEnumerable<Rezerwacja>> GetDostepneTerminyAsync(int kortId, DateTime data);
         Task<Rezerwacja> UtworzRezerwacjeAsync(int kortId, int uzytkownikId, DateTime dataRezerwacji, decimal iloscGodzin, string uwagi = null);
@@ -12,6 +13,8 @@ namespace SRKT.Business.Services
         Task<IEnumerable<Rezerwacja>> PobierzWszystkieRezerwacjeZDatyAsync(DateTime data);
 
         Task<IEnumerable<TimeSlot>> GetWolneTerminyAsync(int kortId, DateTime data, decimal dlugoscSesji);
+        Task<Rezerwacja> UtworzRezerwacjeBezPowiadomieniaAsync(int kortId, int uzytkownikId, DateTime dataRezerwacji, decimal iloscGodzin, string uwagi = null);
+        Task WyslijPowiadomienieORezerwacjiAsync(int rezerwacjaId, bool oplacona);
 
         Task<bool> OznaczJakoOplaconeAsync(int rezerwacjaId);
     }

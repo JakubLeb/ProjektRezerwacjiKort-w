@@ -8,7 +8,7 @@ namespace SRKT.WPF.ViewModels
     {
         private readonly IPlatnoscService _platnoscService;
         private readonly int _rezerwacjaId;
-        private readonly Action<bool> _onClose;
+        private readonly Func<bool, Task> _onComplete;
 
         private string _kodBlik;
         private string _komunikat;
@@ -19,15 +19,15 @@ namespace SRKT.WPF.ViewModels
             IPlatnoscService platnoscService,
             int rezerwacjaId,
             decimal kwota,
-            Action<bool> onClose)
+            Func<bool, Task> onComplete)
         {
             _platnoscService = platnoscService;
             _rezerwacjaId = rezerwacjaId;
             _kwota = kwota;
-            _onClose = onClose;
+            _onComplete = onComplete;
 
             ZaplacCommand = new RelayCommand(async _ => await ZaplacAsync(), _ => MozeZaplacic());
-            AnulujCommand = new RelayCommand(_ => Anuluj());
+            AnulujCommand = new RelayCommand(async _ => await AnulujAsync());
         }
 
         public string KodBlik
@@ -108,7 +108,7 @@ namespace SRKT.WPF.ViewModels
                         MessageBoxButton.OK,
                         MessageBoxImage.Information);
 
-                    _onClose(true); // Zamknij z sukcesem
+                    await _onComplete(true); // Zamknij z sukcesem
                 }
                 else
                 {
@@ -125,9 +125,9 @@ namespace SRKT.WPF.ViewModels
             }
         }
 
-        private void Anuluj()
+        private async Task AnulujAsync()
         {
-            _onClose(false); // Zamknij bez płatności
+            await _onComplete(false); // Zamknij bez płatności
         }
     }
 }

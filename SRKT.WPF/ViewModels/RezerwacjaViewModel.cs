@@ -97,7 +97,7 @@ namespace SRKT.WPF.ViewModels
         {
             try
             {
-                // Walidacja
+                // Walidacja...
                 if (_opcja?.Slot == null)
                 {
                     MessageBox.Show("Błąd: Brak danych o wybranym terminie.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -110,26 +110,28 @@ namespace SRKT.WPF.ViewModels
                     return;
                 }
 
-                // Utwórz rezerwację
-                var nowaRezerwacja = await _rezerwacjaService.UtworzRezerwacjeAsync(
-                    _opcja.Slot.KortId,
-                    _uzytkownik.Id,
-                    _opcja.Slot.Start,
-                    _opcja.Slot.Dlugosc,
-                    Uwagi
-                );
-
-                if (nowaRezerwacja == null)
-                {
-                    MessageBox.Show("Nie udało się utworzyć rezerwacji.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
-
-                // Jeśli wybrano płatność BLIK - otwórz okno płatności
+                // Jeśli płatność BLIK - utwórz rezerwację BEZ powiadomienia
                 if (CzyPlatnoscBlik)
                 {
+                    var nowaRezerwacja = await _rezerwacjaService.UtworzRezerwacjeBezPowiadomieniaAsync(
+                        _opcja.Slot.KortId,
+                        _uzytkownik.Id,
+                        _opcja.Slot.Start,
+                        _opcja.Slot.Dlugosc,
+                        Uwagi
+                    );
+
+                    if (nowaRezerwacja == null)
+                    {
+                        MessageBox.Show("Nie udało się utworzyć rezerwacji.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+
                     if (_platnoscService == null)
                     {
+                        // Wyślij powiadomienie (płatność niedostępna)
+                        await _rezerwacjaService.WyslijPowiadomienieORezerwacjiAsync(nowaRezerwacja.Id, false);
+
                         MessageBox.Show(
                             "Rezerwacja została utworzona.\nPłatność BLIK jest chwilowo niedostępna - zapłać na miejscu.",
                             "Rezerwacja utworzona",
@@ -146,9 +148,12 @@ namespace SRKT.WPF.ViewModels
                         _platnoscService,
                         nowaRezerwacja.Id,
                         CenaCalkowita,
-                        (sukces) =>
+                        async (sukces) =>
                         {
                             blikWindow.Close();
+
+                            // Wyślij powiadomienie DOPIERO TERAZ
+                            await _rezerwacjaService.WyslijPowiadomienieORezerwacjiAsync(nowaRezerwacja.Id, sukces);
 
                             if (sukces)
                             {
@@ -176,18 +181,33 @@ namespace SRKT.WPF.ViewModels
                 }
                 else
                 {
-                    // Płatność na miejscu
+                    // Płatność na miejscu - standardowe zachowanie z powiadomieniem
+                    var nowaRezerwacja = await _rezerwacjaService.UtworzRezerwacjeAsync(
+                        _opcja.Slot.KortId,
+                        _uzytkownik.Id,
+                        _opcja.Slot.Start,
+                        _opcja.Slot.Dlugosc,
+                        Uwagi
+                    );
+
+                    if (nowaRezerwacja == null)
+                    {
+                        MessageBox.Show("Nie udało się utworzyć rezerwacji.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+
                     MessageBox.Show(
                         "Rezerwacja zakończona sukcesem!\nPłatność do uregulowania na miejscu.",
                         "Sukces",
                         MessageBoxButton.OK,
                         MessageBoxImage.Information);
+
                     _closeAction();
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Błąd rezerwacji: {ex.Message}", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Wystąpił błąd: {ex.Message}", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }
